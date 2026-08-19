@@ -10,13 +10,21 @@
 <body>
 <header>
   <div class="logo">랩데이터통합관리 LIMS</div>
-  <nav>
-    <a href="#">시험관리</a>
-    <a href="#">품질보증</a>
-    <a href="#">자원관리</a>
-    <a href="#">현황</a>
-  </nav>
-  <div class="user-info">품질팀 · 품질팀</div>
+  <div class="right-group">
+    <nav>
+      <a href="#">시험관리</a>
+      <a href="#">품질보증</a>
+      <a href="#">자원관리</a>
+      <a href="#">현황</a>
+    </nav>
+    <div class="header-icons">
+      <button class="icon-badge">🔔<span class="badge blue">0</span></button>
+      <button class="icon-badge">📋<span class="badge green">0</span></button>
+    </div>
+    <button class="toggle-off">⏻ OFF</button>
+    <span class="avatar"></span>
+    <span class="user-info">품질팀 · 품질팀</span>
+  </div>
 </header>
 
 <div class="breadcrumb">
@@ -24,14 +32,23 @@
 </div>
 
 <div class="tabs">
-  <span class="tab-active">공급사 Audit</span>
+  <span class="tab-active">📋 공급사 Audit</span>
 </div>
+
 <div class="title-bar">
   <h2>공급사 Audit</h2>
-  <div class="buttons">
-    <button>검색</button>
-    <button>+ 추가</button>
-    <button>엑셀출력</button>
+  <div class="title-actions">
+    <div class="buttons">
+      <button>검색</button>
+      <button>+ 추가</button>
+      <button>엑셀출력</button>
+    </div>
+    <div class="select-group">
+      선택:
+      <button class="select-icon">📊</button>
+      <button class="select-icon">📄</button>
+      <button class="select-icon">☑️</button>
+    </div>
   </div>
 </div>
 
@@ -47,12 +64,21 @@
     <option>날짜선택</option>
   </select>
 
-  <input type="text" placeholder="From">
-  <input type="text" placeholder="To">
+  <div class="date-input">
+    <input type="text" placeholder="From">
+    <button class="icon-btn" id="from-date">📅</button>
+    <button class="icon-btn" id="from-time">🕐</button>
+  </div>
+
+  <div class="date-input">
+    <input type="text" placeholder="To">
+    <span>📅</span><span>🕐</span>
+  </div>
 </div>
 
-<table>
-  <thead>
+<div class="table-wrapper">
+  <table>
+    <thead>
     <tr>
       <th>N</th>
       <th>Action</th>
@@ -68,13 +94,18 @@
       <th>수정자</th>
       <th>수정일</th>
     </tr>
-  </thead>
+    </thead>
 
-  <tbody>
+    <tbody>
     <tr>
       <td>1</td>
-      <td>✏️ 📄 ⬇️</td>
-      <td>MFA-0000002</td>
+      <td>
+        <button class="row-action" id="profile-new-window-1" title="ProfileCard New Window">↗️</button>
+        <button class="row-action" id="profile-with-window-1" title="ProfileCard With Window">🪟</button>
+        <button class="row-action" id="copy-1" title="복사 생성">📄</button>
+        <button class="row-action" id="download-1" title="Download">⬇️</button>
+      </td>
+      <td><a href="#" class="id-link" id="audit-detail-1">MFA-0000002</a></td>
       <td>진행중</td>
       <td>Nikka Finetech</td>
       <td>260316 삼성파운드리 원재료 집중점검 요청</td>
@@ -86,8 +117,9 @@
       <td>관리자</td>
       <td>2026.08.12 11:02:16</td>
     </tr>
-  </tbody>
-</table>
+    </tbody>
+  </table>
+</div>
 
 <div class="pagination">
   <div class="page-buttons">
