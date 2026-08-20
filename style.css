@@ -48,6 +48,28 @@ nav a {
   font-size: 14px;
 }
 
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: white;
+}
+
+.page-header-row {
+  display: flex;
+}
+
+.page-header-left {
+  width: 280px;
+  padding: 15px;
+  border-right: 1px solid #ddd;
+}
+
+.page-header-right {
+  flex: 1;
+  padding: 15px 30px;
+}
+
 .breadcrumb {
   padding: 12px 30px;
   color: gray;
@@ -110,17 +132,25 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+td {
   padding: 10px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
+  border-top: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  text-align: left;
   font-size: 13px;
   white-space: nowrap;
 }
 
 th {
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  text-align: center;
+  font-size: 13px;
+  white-space: nowrap;
   background-color: #f0f0f0;
   color: #333;
+  border-bottom: 1px solid #ccc;
 }
 
 .pagination {
@@ -245,4 +275,243 @@ th {
 .id-link:hover {
   text-decoration: underline;
 }
+
+<!---->
+
+.tab-list {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #555;
+  cursor: pointer;
+}
+
+.tab-close {
+  margin-left: 8px;
+  font-size: 12px;
+  border: none;
+  background: none;
+}
+
+.page-title {
+  padding: 15px 30px;
+  padding-bottom: 25px;
+  font-size: 20px;
+}
+
+.tree-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-layout {
+  display: flex;
+}
+
+.sidebar-left {
+  width: 280px;
+  border-right: 1px solid #ddd;
+  padding: 15px;
+}
+
+.sidebar-section {
+  margin-bottom: 20px;
+}
+
+.sidebar-section h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.link-list {
+  list-style: none;
+}
+
+.link-list li {
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+}
+
+.link-active {
+  background-color: #eef2fb;
+  color: #1a3d7a;
+  font-weight: bold;
+  border-left: 3px solid #1a3d7a;
+}
+
+.detail-content {
+  flex: 1;
+  padding: 15px 30px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 10px;
+  padding-top: 15px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom:  15px;
+  font-weight: bold;
+}
+
+.detail-actions button {
+  padding: 6px 12px;
+  margin-left: 8px;
+  border: 1px solid darkgray;
+  background-color: white;
+  cursor: pointer;
+}
+
+.info-block {
+  margin-bottom: 25px;
+}
+
+.info-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.required-note {
+  font-size: 14px;
+  color: red;
+}
+
+
+.info-block h3 {
+  display: inline-block;
+  background-color: #1a3d7a;
+  color: white;
+  padding: 10px 50px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.info-table th,
+.info-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.info-table th {
+  background-color: #f7f7f7;
+  width: 150px;
+  text-align: left;
+  color: #555;
+}
+
+.info-table td {
+  width: 350px;
+}
+
+.upload-area {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px dashed darkgray;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+}
+
+.upload-btn {
+  padding: 6px 14px;
+  border: 1px solid darkgray;
+  background-color: white;
+  cursor: pointer;
+}
+
+.upload-hint {
+  color: #888;
+  font-size: 13px;
+}
+
+.file-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.col-func {width: 10%}
+.col-file {width: 25%}
+.col-writer {width: 20%}
+.col-date {width: 45%}
+
+
+.file-table th {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+
+.empty-row td {
+  color: #999;
+  padding: 30px;
+}
+
+.file-table th,
+.file-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.ai-search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ai-search-bar select,
+.ai-search-bar input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid darkgray;
+}
+
+.ai-search-bar button {
+  padding: 6px 12px;
+  border: 1px solid darkgray;
+  background-color: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ai-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.ai-table th,
+.ai-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.ai-table th {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.ai-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #555;
+}
+
 
