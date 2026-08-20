@@ -22,7 +22,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #1a3d7a;
+  background-color: #2f7bc4;
   color: white;
   padding: 15px 30px;
 }
@@ -84,7 +84,7 @@ nav a {
 .tab-active {
   display: inline-block;
   padding: 10px 20px;
-  border-bottom: 2px solid navy;
+  border-bottom: 2px solid #2f7bc4;
   font-weight: bold;
 }
 
@@ -178,7 +178,7 @@ th {
 }
 
 .page-active {
-  background-color: navy !important;
+  background-color: #2f7bc4 !important;
   color: white;
 }
 
@@ -214,7 +214,7 @@ th {
 
 .toggle-off {
   background-color: white;
-  color: #1a3d7a;
+  color: #2f7bc4;
   padding: 4px 10px;
   border-radius: 15px;
   font-size: 12px;
@@ -326,11 +326,45 @@ th {
   margin-bottom: 20px;
 }
 
-.sidebar-section h4 {
-  font-size: 14px;
+.sidebar-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #ddd;
+}
+
+.sidebar-section-header h4 {
+  font-size: 14px;
+}
+
+.sidebar-section-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.tree-icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+}
+
+.split-btn {
+  display: flex;
+  border: 1px solid #ddd;
+}
+
+.split-btn .tree-icon-btn {
+  padding:3px 6px;
+}
+
+.caret-btn {
+  border-left: 1px solid #ddd;
+  font-size: 10px;
 }
 
 .link-list {
@@ -346,7 +380,7 @@ th {
 
 .link-active {
   background-color: #eef2fb;
-  color: #1a3d7a;
+  color: #2f7bc4;
   font-weight: bold;
   border-left: 3px solid #1a3d7a;
 }
@@ -391,10 +425,10 @@ th {
 }
 
 
-.info-block h3 {
+.section-title {
   display: inline-block;
-  background-color: #1a3d7a;
   color: white;
+  background-color: #2f7bc4;
   padding: 10px 50px;
   font-size: 14px;
   margin-bottom: 8px;
@@ -427,7 +461,7 @@ th {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid darkgray ;
+  border: 1px solid #ddd ;
   padding: 7px 10px;
   margin-bottom: 10px;
   background-color: #f0f0f0;
@@ -435,8 +469,8 @@ th {
 
 .upload-btn {
   padding: 6px 14px;
-  border: 1px solid darkgray;
-  background-color: #ddd;
+  border: 1px solid #ddd;
+  background-color: #f0f0f0;
   cursor: pointer;
 }
 
@@ -566,3 +600,75 @@ th {
   padding: 10px 15px;
   border-top: none;
 }
+
+.sys-info-row {
+  display: flex;
+  border: 1px solid #ddd;
+}
+
+.sys-info-item {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.sys-info-item:first-child {
+  border-right: 1px solid #ddd;
+}
+
+.sys-label {
+  background-color: #f7f7f7;
+  padding: 10px;
+  font-size: 13px;
+  color: #555;
+  width: 150px;
+  white-space: nowrap;
+}
+
+.sys-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.sys-search-icon {
+  color: #888;
+  cursor: pointer;
+}
+
+.dropdown-wrap {
+  position: relative;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  min-width: 100px;
+  z-index: 200;
+  margin-top: 4px;
+}
+
+.dropdown-wrap:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #2f7bc4;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+

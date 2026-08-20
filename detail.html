@@ -61,14 +61,52 @@
   <div class="detail-layout">
     <aside class="sidebar-left">
       <div class="sidebar-section">
-        <h4>Tree 정보</h4>
+        <div class="sidebar-section-header">
+          <h4>Tree 정보</h4>
+          <div class="sidebar-section-actions">
+            <div class="dropdown-wrap">
+              <div class="split-btn">
+                <button class="tree-icon-btn" title="필터">🔽</button>
+                <button class="tree-icon-btn caret-btn">▾</button>
+              </div>
+              <div class="dropdown-menu">
+                <div class="dropdown-item">✔ 이름</div>
+                <div class="dropdown-item">✔ ID</div>
+                <div class="dropdown-item">✔ Revision</div>
+              </div>
+            </div>
+
+            <div class="dropdown-wrap">
+              <div class="split-btn">
+                <button class="tree-icon-btn" title="정렬">🔼</button>
+                <button class="tree-icon-btn caret-btn">▾</button>
+              </div>
+              <div class="dropdown-menu">
+                <div class="dropdown-item">Name(A-Z)</div>
+                <div class="dropdown-item">Name(Z-A)</div>
+                <div class="dropdown-item">최신순</div>
+                <div class="dropdown-item">✔ 오래된순</div>
+              </div>
+            </div>
+
+            <button class="tree-icon-btn" title="새로고침">🔄</button>
+          </div>
+        </div>
         <div class="tree-item">
           260316 삼성파운드리 원재료 집중점검 요청 MFA-0000002
         </div>
       </div>
 
       <div class="sidebar-section">
-        <h4>연결정보</h4>
+        <div class="sidebar-section-header">
+          <h4>연결정보</h4>
+          <div class="sidebar-section-actions">
+            <button class="tree-icon-btn" title="설정">⚙️</button>
+            <button class="tree-icon-btn" title="새로고침">🔄</button>
+            <button class="tree-icon-btn" title="접기">⌃</button>
+            <button class="tree-icon-btn" title="닫기">✕</button>
+          </div>
+        </div>
         <ul class="link-list">
           <li class="link-active">상세정보</li>
           <li>A/I List</li>
@@ -80,7 +118,7 @@
 
       <div class="info-block">
         <div class="info-block-header">
-          <h3>일반정보</h3>
+          <h3 class="section-title">일반정보</h3>
           <span class="required-note">* 필수 입력</span>
         </div>
         <table class="info-table">
@@ -112,7 +150,7 @@
       </div>
 
       <div class="info-block">
-        <h3>A/I List</h3>
+        <h3 class="section-title">A/I List</h3>
 
         <div class="ai-search-bar">
           <span class="ai-label">상태</span>
@@ -172,19 +210,30 @@
           </table>
         </div>
         <div class="ai-pagination">
-          <div class="page-buttons">
-            <button>|&lt;</button>
-            <button>&lt;</button>
-            <button class="page-active">1</button>
-            <button>&gt;</button>
-            <button>&gt;|</button>
+          <div class="page-left">
+            <div class="page-buttons">
+              <button>|&lt;</button>
+              <button>&lt;</button>
+              <button class="page-active">1</button>
+              <button>&gt;</button>
+              <button>&gt;|</button>
+            </div>
+            <div class="page-size">
+              <select>
+                <option>10</option>
+                <option selected>20</option>
+                <option>50</option>
+                <option>100</option>
+              </select>
+              items per page
+            </div>
           </div>
           <div class="page-total">1 - 2 of 2 items</div>
         </div>
       </div>
 
       <div class="info-block">
-        <h3>📎 첨부파일</h3>
+        <h3>📁 첨부파일</h3>
 
         <div class="upload-area">
           <button class="upload-btn">파일선택</button>
@@ -220,12 +269,30 @@
             </div>
             <div class="page-size">
               <select>
-                <option>20</option>
+                <option>10</option>
+                <option selected>20</option>
+                <option>50</option>
+                <option>100</option>
               </select>
               items per page
             </div>
           </div>
           <div class="page-total">No items to display</div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <h3 class="section-title">시스템정보</h3>
+        <div class="sys-info-row">
+          <div class="sys-info-item">
+            <span class="sys-label">생성자</span>
+            <div class="sys-input">박신영<span class="sys-search-icon">🔍</span></div>
+          </div>
+
+          <div class="sys-info-item">
+            <span class="sys-label">수정자</span>
+            <div class="sys-input">관리자<span class="sys-search-icon">🔍</span></div>
+          </div>
         </div>
       </div>
 
