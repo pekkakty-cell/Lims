@@ -9,194 +9,229 @@
 
 <body>
 
-<div class="sticky-top">
+<div class="detail-page">
+  <div class="sticky-top">
 
-  <header>
-    <div class="logo">랩데이터통합관리 LIMS</div>
-    <div class="right-group">
-      <nav>
-        <a href="#">시험관리</a>
-        <a href="#">품질보증</a>
-        <a href="#">자원관리</a>
-        <a href="#">현황</a>
-      </nav>
-      <div class="header-icons">
-        <button class="icon-badge">🔔<span class="badge blue">0</span></button>
-        <button class="icon-badge">📋<span class="badge green">0</span></button>
+    <header>
+      <div class="logo">랩데이터통합관리 LIMS</div>
+      <div class="right-group">
+        <nav>
+          <a href="#">시험관리</a>
+          <a href="#">품질보증</a>
+          <a href="#">자원관리</a>
+          <a href="#">현황</a>
+        </nav>
+        <div class="header-icons">
+          <button class="icon-badge">🔔<span class="badge blue">0</span></button>
+          <button class="icon-badge">📋<span class="badge green">0</span></button>
+        </div>
+        <button class="toggle-off">⏻ OFF</button>
+        <span class="avatar"></span>
+        <span class="user-info">품질팀 · 품질팀</span>
       </div>
-      <button class="toggle-off">⏻ OFF</button>
-      <span class="avatar"></span>
-      <span class="user-info">품질팀 · 품질팀</span>
-    </div>
-  </header>
+    </header>
 
-  <div class="breadcrumb">
-    🏠 Home &gt; 공급사 Audit
+    <div class="breadcrumb">
+      🏠 Home &gt; 공급사 Audit
+    </div>
+
+    <div class="tabs">
+      <span class="tab-list">📋 공급사 Audit</span>
+      <span class="tab-active">📄 260316 삼성파운드리 원재료 집중점검 요청 A <button class="tab-close">✕</button></span>
+    </div>
+
+    <div class="page-header-row">
+      <div class="page-header-left">
+        <h2 class="page-title">공급사 Audit</h2>
+      </div>
+      <div class="page-header-right">
+        <div class="section-header">
+          <span>ℹ️ 상세정보</span>
+          <div class="detail-actions">
+            <button>✏️ 수정</button>
+            <button>🗑️ 삭제</button>
+            <button>🔄 새로고침</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <div class="tabs">
-    <span class="tab-list">📋 공급사 Audit</span>
-    <span class="tab-active">📄 260316 삼성파운드리 원재료 집중점검 요청 A <button class="tab-close">✕</button></span>
-  </div>
+  <div class="detail-layout">
+    <aside class="sidebar-left">
+      <div class="sidebar-section">
+        <h4>Tree 정보</h4>
+        <div class="tree-item">
+          260316 삼성파운드리 원재료 집중점검 요청 MFA-0000002
+        </div>
+      </div>
 
-  <div class="page-header-row">
-    <div class="page-header-left">
-      <h2 class="page-title">공급사 Audit</h2>
-    </div>
-    <div class="page-header-right">
-      <div class="section-header">
-        <span>ℹ️ 상세정보</span>
-        <div class="detail-actions">
-          <button>✏️ 수정</button>
-          <button>🗑️ 삭제</button>
+      <div class="sidebar-section">
+        <h4>연결정보</h4>
+        <ul class="link-list">
+          <li class="link-active">상세정보</li>
+          <li>A/I List</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="detail-content">
+
+      <div class="info-block">
+        <div class="info-block-header">
+          <h3>일반정보</h3>
+          <span class="required-note">* 필수 입력</span>
+        </div>
+        <table class="info-table">
+          <tr>
+            <th>ID</th>
+            <td>MFA-0000002</td>
+            <th>상태</th>
+            <td>진행중</td>
+          </tr>
+          <tr>
+            <th>제목</th>
+            <td>260316 삼성파운드리 원재료 집중점검 요청</td>
+            <th>종합결과</th>
+            <td>종합결과</td>
+          </tr>
+          <tr>
+            <th>공급사</th>
+            <td>Nikka Finetech</td>
+            <th>평가결과 요약</th>
+            <td>평가결과 요약</td>
+          </tr>
+          <tr>
+            <th>평가일자</th>
+            <td>2026.03.27</td>
+            <th>방문예정일</th>
+            <td>2026.09.11</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="info-block">
+        <h3>A/I List</h3>
+
+        <div class="ai-search-bar">
+          <span class="ai-label">상태</span>
+          <select>
+            <option>전체</option>
+            <option>진행중</option>
+            <option>완료</option>
+          </select>
+
+          <span class="ai-label">부서/담당</span>
+          <input type="text">
+
+          <span class="ai-label">내용</span>
+          <input type="text">
+
+          <span class="ai-label">기한</span>
+          <input type="text">
+
+          <button>🔍 검색</button>
+          <button>➕ 추가</button>
           <button>🔄 새로고침</button>
         </div>
+
+        <div class="ai-table-wrapper">
+          <table class="ai-table">
+            <thead>
+            <tr>
+              <th>View</th>
+              <th>Action</th>
+              <th>No</th>
+              <th>상태</th>
+              <th>내용</th>
+              <th>부서/담당</th>
+              <th>기한</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>➕</td>
+              <td>🗑️ 연결삭제</td>
+              <td>1</td>
+              <td>진행중</td>
+              <td>한솔</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>➕</td>
+              <td>🗑️ 연결삭제</td>
+              <td>2</td>
+              <td>진행중</td>
+              <td>렘택</td>
+              <td></td>
+              <td></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ai-pagination">
+          <div class="page-buttons">
+            <button>|&lt;</button>
+            <button>&lt;</button>
+            <button class="page-active">1</button>
+            <button>&gt;</button>
+            <button>&gt;|</button>
+          </div>
+          <div class="page-total">1 - 2 of 2 items</div>
+        </div>
       </div>
-    </div>
+
+      <div class="info-block">
+        <h3>📎 첨부파일</h3>
+
+        <div class="upload-area">
+          <button class="upload-btn">파일선택</button>
+          <span class="upload-hint">파일을 여기에 끌어다 놓으세요.</span>
+        </div>
+
+        <div class="file-table-wrapper">
+          <table class="file-table">
+            <thead>
+            <tr>
+              <th class="col-func">기능</th>
+              <th class="col-file">파일명</th>
+              <th class="col-writer">작성자</th>
+              <th class="col-date">작성일</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="empty-row">
+
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="file-pagination">
+          <div class="page-left">
+            <div class="page-buttons">
+              <button>|&lt;</button>
+              <button>&lt;</button>
+              <button class="page-active">0</button>
+              <button>&gt;</button>
+              <button>&gt;|</button>
+            </div>
+            <div class="page-size">
+              <select>
+                <option>20</option>
+              </select>
+              items per page
+            </div>
+          </div>
+          <div class="page-total">No items to display</div>
+        </div>
+      </div>
+
+    </main>
   </div>
 
-</div>
-
-<div class="detail-layout">
-  <aside class="sidebar-left">
-    <div class="sidebar-section">
-      <h4>Tree 정보</h4>
-      <div class="tree-item">
-        260316 삼성파운드리 원재료 집중점검 요청 MFA-0000002
-      </div>
-    </div>
-
-    <div class="sidebar-section">
-      <h4>연결정보</h4>
-      <ul class="link-list">
-        <li class="link-active">상세정보</li>
-        <li>A/I List</li>
-      </ul>
-    </div>
-  </aside>
-
-  <main class="detail-content">
-
-    <div class="info-block">
-      <div class="info-block-header">
-        <h3>일반정보</h3>
-        <span class="required-note">* 필수 입력</span>
-      </div>
-      <table class="info-table">
-        <tr>
-          <th>ID</th>
-          <td>MFA-0000002</td>
-          <th>상태</th>
-          <td>진행중</td>
-        </tr>
-        <tr>
-          <th>제목</th>
-          <td>260316 삼성파운드리 원재료 집중점검 요청</td>
-          <th>종합결과</th>
-          <td>종합결과</td>
-        </tr>
-        <tr>
-          <th>공급사</th>
-          <td>Nikka Finetech</td>
-          <th>평가결과 요약</th>
-          <td>평가결과 요약</td>
-        </tr>
-        <tr>
-          <th>평가일자</th>
-          <td>2026.03.27</td>
-          <th>방문예정일</th>
-          <td>2026.09.11</td>
-        </tr>
-      </table>
-    </div>
-
-    <div class="info-block">
-      <h3>A/I List</h3>
-
-      <div class="ai-search-bar">
-        <select>
-          <option>전체</option>
-        </select>
-        <input type="text" placeholder="부서/담당">
-        <input type="text" placeholder="내용">
-        <input type="text" placeholder="기한">
-        <button>🔍 검색</button>
-        <button>➕ 추가</button>
-        <button>🔄 새로고침</button>
-      </div>
-
-      <table class="ai-table">
-        <thead>
-        <tr>
-          <th>View</th>
-          <th>Action</th>
-          <th>No</th>
-          <th>상태</th>
-          <th>내용</th>
-          <th>부서/담당</th>
-          <th>기한</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td>➕</td>
-          <td>🗑️ 연결삭제</td>
-          <td>1</td>
-          <td>진행중</td>
-          <td>한솔</td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>➕</td>
-          <td>🗑️ 연결삭제</td>
-          <td>2</td>
-          <td>진행중</td>
-          <td>렘택</td>
-          <td></td>
-          <td></td>
-        </tr>
-        </tbody>
-      </table>
-
-      <div class="ai-pagination">
-        <div class="page-buttons">
-          <button>|&lt;</button>
-          <button>&lt;</button>
-          <button class="page-active">1</button>
-          <button>&gt;</button>
-          <button>&gt;|</button>
-        </div>
-        <div class="page-total">1 - 2 of 2 items</div>
-      </div>
-    </div>
-
-    <div class="info-block">
-      <h3>📎 첨부파일</h3>
-
-      <div class="upload-area">
-        <button class="upload-btn">파일선택</button>
-        <span class="upload-hint">파일을 여기에 끌어다 놓으세요.</span>
-      </div>
-
-      <table class="file-table">
-        <thead>
-        <tr>
-          <th class="col-func">기능</th>
-          <th class="col-file">파일명</th>
-          <th class="col-writer">작성자</th>
-          <th class="col-date">작성일</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr class="empty-row">
-          <td colspan="4">No item to display</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-  </main>
 </div>
 
 </body>

@@ -171,9 +171,10 @@ th {
 .page-buttons button{
   padding: 4px 10px;
   margin-right: 4px;
-  border: 1px solid darkgray;
   background-color: white;
   cursor: pointer;
+  border: none;
+  border-radius: 4px;
 }
 
 .page-active {
@@ -276,8 +277,6 @@ th {
   text-decoration: underline;
 }
 
-<!---->
-
 .tab-list {
   display: inline-block;
   padding: 10px 20px;
@@ -304,11 +303,20 @@ th {
   white-space: nowrap;
 }
 
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .detail-layout {
   display: flex;
+  flex: 1;
+  min-height: 0;
 }
 
 .sidebar-left {
+  overflow-y: auto;
   width: 280px;
   border-right: 1px solid #ddd;
   padding: 15px;
@@ -344,6 +352,7 @@ th {
 }
 
 .detail-content {
+  overflow-y: auto;
   flex: 1;
   padding: 15px 30px;
 }
@@ -416,23 +425,24 @@ th {
 
 .upload-area {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  border: 1px dashed darkgray;
-  padding: 12px 15px;
+  border: 1px solid darkgray ;
+  padding: 7px 10px;
   margin-bottom: 10px;
+  background-color: #f0f0f0;
 }
 
 .upload-btn {
   padding: 6px 14px;
   border: 1px solid darkgray;
-  background-color: white;
+  background-color: #ddd;
   cursor: pointer;
 }
 
 .upload-hint {
   color: #888;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .file-table {
@@ -452,6 +462,29 @@ th {
   color: #333;
 }
 
+.file-table-wrapper {
+  border: 1px solid #ddd;
+  height: 200px;
+  overflow-y: scroll;
+  margin-top: 10px;
+}
+
+.file-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #555;
+  border: 1px solid #ddd;
+  border-top: none;
+  padding: 10px 15px;
+}
+
+.page-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
 
 .empty-row td {
   color: #999;
@@ -469,7 +502,9 @@ th {
 .ai-search-bar {
   display: flex;
   gap: 8px;
-  margin-bottom: 10px;
+
+  background-color: #f0f0f0;
+  padding: 10px
 }
 
 .ai-search-bar select,
@@ -487,10 +522,25 @@ th {
   white-space: nowrap;
 }
 
+.ai-label {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.ai-table-wrapper {
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+  height: 200px;
+  overflow-y: scroll;
+  padding-bottom: 40px;
+  margin-top: 10px;
+}
+
 .ai-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 10px;
 }
 
 .ai-table th,
@@ -512,6 +562,7 @@ th {
   justify-content: space-between;
   font-size: 13px;
   color: #555;
+  border: 1px solid #ddd;
+  padding: 10px 15px;
+  border-top: none;
 }
-
-
