@@ -22,14 +22,42 @@
           <a href="#">현황</a>
         </nav>
         <div class="header-icons">
-          <button class="icon-badge">🔔<span class="badge blue">0</span></button>
-          <button class="icon-badge">📋<span class="badge green">0</span></button>
+          <div class="dropdown-wrap">
+            <button class="icon-badge">🔔<span class="badge blue">0</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item">✔ 작업중인시험</div>
+              <a href="#" class="dropdown-link">수입검사 더보기 →</a>
+              <a href="#" class="dropdown-link">제품검사 더보기 →</a>
+            </div>
+          </div>
+
+          <div class="dropdown-wrap">
+            <button class="icon-badge">📋<span class="badge green">0</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item">✔ 고객응답대기 출하성적서</div>
+              <a href="#" class="dropdown-link">출하성적서 더보기 →</a>
+            </div>
+          </div>
         </div>
         <button class="toggle-off">⏻ OFF</button>
-        <span class="avatar"></span>
-        <span class="user-info">품질팀 · 품질팀</span>
+        <div class="dropdown-wrap">
+          <button class="user-menu">
+            <span class="avatar"></span>
+            <span class="user-info">품질팀 · 품질팀</span>
+            <span class="user-caret">▾</span>
+          </button>
+          <div class="dropdown-menu user-dropdown-menu">
+            <div class="dropdown-item">🕐 로그아웃까지 95:52</div>
+            <a href="#" class="dropdown-link">👤 정보수정</a>
+            <a href="#" class="dropdown-link">⚙️ 비밀번호 변경</a>
+            <a href="#" class="dropdown-link">❓ 시스템 정보</a>
+            <a href="#" class="dropdown-link">⏻ Logout</a>
+          </div>
+        </div>
       </div>
     </header>
+
+    <div class="nav-mega-menu" id="nav-mega-menu"></div>
 
     <div class="breadcrumb">
       🏠 Home &gt; 공급사 Audit

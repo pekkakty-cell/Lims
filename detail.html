@@ -22,14 +22,42 @@
           <a href="#">현황</a>
         </nav>
         <div class="header-icons">
-          <button class="icon-badge">🔔<span class="badge blue">0</span></button>
-          <button class="icon-badge">📋<span class="badge green">0</span></button>
+          <div class="dropdown-wrap">
+            <button class="icon-badge">🔔<span class="badge blue">0</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item">✔ 작업중인시험</div>
+              <a href="#" class="dropdown-link">수입검사 더보기 →</a>
+              <a href="#" class="dropdown-link">제품검사 더보기 →</a>
+            </div>
+          </div>
+
+          <div class="dropdown-wrap">
+            <button class="icon-badge">📋<span class="badge green">0</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item">✔ 고객응답대기 출하성적서</div>
+              <a href="#" class="dropdown-link">출하성적서 더보기 →</a>
+            </div>
+          </div>
         </div>
         <button class="toggle-off">⏻ OFF</button>
-        <span class="avatar"></span>
-        <span class="user-info">품질팀 · 품질팀</span>
+        <div class="dropdown-wrap">
+          <button class="user-menu">
+            <span class="avatar"></span>
+            <span class="user-info">품질팀 · 품질팀</span>
+            <span class="user-caret">▾</span>
+          </button>
+          <div class="dropdown-menu user-dropdown-menu">
+            <div class="dropdown-item">🕐 로그아웃까지 95:52</div>
+            <a href="#" class="dropdown-link">👤 정보수정</a>
+            <a href="#" class="dropdown-link">⚙️ 비밀번호 변경</a>
+            <a href="#" class="dropdown-link">❓ 시스템 정보</a>
+            <a href="#" class="dropdown-link">⏻ Logout</a>
+          </div>
+        </div>
       </div>
     </header>
+
+    <div class="nav-mega-menu" id="nav-mega-menu"></div>
 
     <div class="breadcrumb">
       🏠 Home &gt; 공급사 Audit
@@ -201,19 +229,19 @@
               <td>➕</td>
               <td><button>🗑️ 연결삭제</button></td>
               <td>1</td>
-              <td>진행중</td>
+              <td><span class="ai-cell-display" data-cell-type="status">진행중</span></td>
               <td>한솔</td>
               <td></td>
-              <td></td>
+              <td><span class="ai-cell-display" data-cell-type="date"></span></td>
             </tr>
             <tr>
               <td>➕</td>
               <td><button>🗑️ 연결삭제</button></td>
               <td>2</td>
-              <td>진행중</td>
+              <td><span class="ai-cell-display" data-cell-type="status">진행중</span></td>
               <td>렘택</td>
               <td></td>
-              <td></td>
+              <td><span class="ai-cell-display" data-cell-type="date"></span></td>
             </tr>
             </tbody>
           </table>
@@ -245,7 +273,8 @@
         <h3>📁 첨부파일</h3>
 
         <div class="upload-area">
-          <button class="upload-btn">파일선택</button>
+          <label class="upload-btn" for="file-upload-input">파일선택</label>
+          <input type="file" id="file-upload-input" multiple hidden>
           <span class="upload-hint">파일을 여기에 끌어다 놓으세요.</span>
         </div>
 
@@ -259,8 +288,8 @@
               <th class="col-date">작성일</th>
             </tr>
             </thead>
-            <tbody>
-            <tr class="empty-row">
+            <tbody id="file-table-body">
+            <tr class="empty-row" id="file-empty-row">
 
             </tr>
             </tbody>
@@ -272,7 +301,7 @@
             <div class="page-buttons">
               <button>|&lt;</button>
               <button>&lt;</button>
-              <button class="page-active">0</button>
+              <button class="page-active" id="file-page-active">0</button>
               <button>&gt;</button>
               <button>&gt;|</button>
             </div>
@@ -286,7 +315,7 @@
               items per page
             </div>
           </div>
-          <div class="page-total">No items to display</div>
+          <div class="page-total" id="file-page-total">No items to display</div>
         </div>
       </div>
 

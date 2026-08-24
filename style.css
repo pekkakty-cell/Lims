@@ -503,7 +503,13 @@ th {
   background-color: #f0f0f0;
 }
 
+.upload-area.drag-over {
+  border: 1px dashed #2f7bc4;
+  background-color: #eef2fb;
+}
+
 .upload-btn {
+  display: inline-block;
   padding: 6px 14px;
   border: 1px solid #ddd;
   background-color: #f0f0f0;
@@ -567,6 +573,13 @@ th {
   padding: 10px;
   font-size: 13px;
   text-align: center;
+}
+
+.file-table td button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
 }
 
 .ai-search-bar {
@@ -653,6 +666,25 @@ th {
   padding: 4px 6px;
   font-size: 13px;
   width: 100%;
+}
+
+.ai-cell-display {
+  display: block;
+  min-height: 1em;
+  cursor: pointer;
+}
+
+.ai-date-input {
+  position: relative;
+  width: 100%;
+}
+
+.ai-hidden-date-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .ai-pagination {
@@ -752,6 +784,80 @@ th {
 
 .dropdown-item:hover {
   background-color: #f0f0f0;
+}
+
+.dropdown-link {
+  display: block;
+  padding: 8px 12px;
+  color: #2f7bc4;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.dropdown-link:hover {
+  background-color: #f0f0f0;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+}
+
+.user-caret {
+  font-size: 10px;
+}
+
+.user-dropdown-menu {
+  left: auto;
+  right: 0;
+  min-width: 200px;
+}
+
+.nav-mega-menu {
+  display: none;
+  gap: 60px;
+  background-color: white;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding: 25px 30px;
+}
+
+.nav-mega-menu.open {
+  display: flex;
+}
+
+.nav-mega-column {
+  min-width: 160px;
+}
+
+.nav-mega-column h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.nav-mega-column h4:not(:first-child) {
+  margin-top: 20px;
+}
+
+.nav-mega-column a {
+  display: block;
+  padding: 6px 0;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.nav-mega-column a:hover {
+  color: #2f7bc4;
+}
+
+nav a.nav-active {
+  background-color: #1a3d7a;
+  border-bottom-color: #4a9eff;
 }
 
 .date-icon-btn,
