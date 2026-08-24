@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body data-tab-label="260316 삼성파운드리 원재료 집중점검 요청 A" data-tab-icon="📄">
 
 <div class="detail-page">
   <div class="sticky-top">
@@ -35,10 +35,7 @@
       🏠 Home &gt; 공급사 Audit
     </div>
 
-    <div class="tabs">
-      <span class="tab-list">📋 공급사 Audit</span>
-      <span class="tab-active">📄 260316 삼성파운드리 원재료 집중점검 요청 A <button class="tab-close">✕</button></span>
-    </div>
+    <div class="tabs"></div>
 
     <div class="page-header-row">
       <div class="page-header-left">
@@ -48,7 +45,7 @@
         <div class="section-header">
           <span>ℹ️ 상세정보</span>
           <div class="detail-actions">
-            <button>✏️ 수정</button>
+            <button id="edit-toggle-btn">✏️ 수정</button>
             <button>🗑️ 삭제</button>
             <button>🔄 새로고침</button>
           </div>
@@ -64,7 +61,7 @@
         <div class="sidebar-section-header">
           <h4>Tree 정보</h4>
           <div class="sidebar-section-actions">
-            <div class="dropdown-wrap">
+            <div class="dropdown-wrap" id="filter-wrap">
               <div class="split-btn">
                 <button class="tree-icon-btn" title="필터">🔽</button>
                 <button class="tree-icon-btn caret-btn">▾</button>
@@ -76,12 +73,12 @@
               </div>
             </div>
 
-            <div class="dropdown-wrap">
+            <div class="dropdown-wrap" id="sort-wrap">
               <div class="split-btn">
-                <button class="tree-icon-btn" title="정렬">🔼</button>
+                <button class="tree-icon-btn" id="sort-icon-btn" title="정렬">🔼</button>
                 <button class="tree-icon-btn caret-btn">▾</button>
               </div>
-              <div class="dropdown-menu">
+              <div class="dropdown-menu" id="sort-dropdown-menu">
                 <div class="dropdown-item">Name(A-Z)</div>
                 <div class="dropdown-item">Name(Z-A)</div>
                 <div class="dropdown-item">최신순</div>
@@ -126,25 +123,34 @@
             <th>ID</th>
             <td>MFA-0000002</td>
             <th>상태</th>
-            <td>진행중</td>
+            <td><span class="field-display" data-field-type="status">진행중</span></td>
           </tr>
           <tr>
             <th>제목</th>
-            <td>260316 삼성파운드리 원재료 집중점검 요청</td>
+            <td><span class="field-display">260316 삼성파운드리 원재료 집중점검 요청</span></td>
             <th>종합결과</th>
-            <td>종합결과</td>
+            <td><span class="field-display">종합결과</span></td>
           </tr>
           <tr>
             <th>공급사</th>
-            <td>Nikka Finetech</td>
+            <td>
+              <span>Nikka Finetech</span>
+              <button class="vendor-search-btn" title="공급사 상세보기">🔍</button>
+            </td>
             <th>평가결과 요약</th>
-            <td>평가결과 요약</td>
+            <td><span class="field-display">평가결과 요약</span></td>
           </tr>
           <tr>
             <th>평가일자</th>
-            <td>2026.03.27</td>
+            <td>
+              <span class="date-display">2026.03.27</span>
+              <button class="date-icon-btn" title="날짜 선택">📅</button>
+            </td>
             <th>방문예정일</th>
-            <td>2026.09.11</td>
+            <td>
+              <span class="date-display">2026.09.11</span>
+              <button class="date-icon-btn" title="날짜 선택">📅</button>
+            </td>
           </tr>
         </table>
       </div>
@@ -167,10 +173,13 @@
           <input type="text">
 
           <span class="ai-label">기한</span>
-          <input type="text">
+          <div class="date-input">
+            <input type="text">
+            <button class="icon-btn">📅</button>
+          </div>
 
           <button>🔍 검색</button>
-          <button>➕ 추가</button>
+          <button id="ai-add-btn">➕ 추가</button>
           <button>🔄 새로고침</button>
         </div>
 
@@ -187,10 +196,10 @@
               <th>기한</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="ai-table-body">
             <tr>
               <td>➕</td>
-              <td>🗑️ 연결삭제</td>
+              <td><button>🗑️ 연결삭제</button></td>
               <td>1</td>
               <td>진행중</td>
               <td>한솔</td>
@@ -199,7 +208,7 @@
             </tr>
             <tr>
               <td>➕</td>
-              <td>🗑️ 연결삭제</td>
+              <td><button>🗑️ 연결삭제</button></td>
               <td>2</td>
               <td>진행중</td>
               <td>렘택</td>
@@ -228,7 +237,7 @@
               items per page
             </div>
           </div>
-          <div class="page-total">1 - 2 of 2 items</div>
+          <div class="page-total" id="ai-page-total">1 - 2 of 2 items</div>
         </div>
       </div>
 
@@ -301,5 +310,6 @@
 
 </div>
 
+<script src="script.js"></script>
 </body>
 </html>
