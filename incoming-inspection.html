@@ -3,11 +3,11 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>공급사 Audit</title>
+  <title>수입검사</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body data-inspection-type="incoming" data-tab-label="수입검사" data-tab-icon="🧪">
 <header>
   <div class="logo">랩데이터통합관리 LIMS</div>
   <div class="right-group">
@@ -56,50 +56,13 @@
 <div class="nav-mega-menu" id="nav-mega-menu"></div>
 
 <div class="breadcrumb">
-  🏠 Home &gt; 공급사 Audit
+  🏠 Home &gt; 시험관리 &gt; 수입검사
 </div>
 
 <div class="tabs"></div>
 
 <div class="title-bar">
-  <h2>공급사 Audit</h2>
-  <div class="title-actions">
-    <div class="buttons">
-      <button>검색</button>
-      <button id="audit-add-btn">+ 추가</button>
-      <button>엑셀출력</button>
-    </div>
-    <div class="select-group">
-      선택:
-      <button class="select-icon">📊</button>
-      <button class="select-icon">📄</button>
-      <button class="select-icon">☑️</button>
-    </div>
-  </div>
-</div>
-
-<div class="search-bar">
-  <input type="text" placeholder="ID">
-  <input type="text" placeholder="명칭">
-
-  <select>
-    <option>상태</option>
-  </select>
-
-  <select class="date-select">
-    <option>날짜선택</option>
-  </select>
-
-  <div class="date-input">
-    <input type="text" placeholder="From">
-    <button class="icon-btn" id="from-date">📅</button>
-    <button class="icon-btn" id="from-time">🕐</button>
-  </div>
-
-  <div class="date-input">
-    <input type="text" placeholder="To">
-    <span>📅</span><span>🕐</span>
-  </div>
+  <h2>수입검사</h2>
 </div>
 
 <div class="table-wrapper">
@@ -107,42 +70,13 @@
     <thead>
     <tr>
       <th>N</th>
-      <th>Action</th>
-      <th>ID</th>
+      <th>항목명</th>
       <th>상태</th>
-      <th>공급사</th>
-      <th>제목</th>
-      <th>평가일자</th>
-      <th>종합결과</th>
-      <th>A/I 개수</th>
-      <th>생성자</th>
-      <th>생성일</th>
-      <th>수정자</th>
-      <th>수정일</th>
+      <th>등록일</th>
     </tr>
     </thead>
-
-    <tbody id="audit-table-body"></tbody>
+    <tbody id="inspection-table-body"></tbody>
   </table>
-</div>
-
-<div class="pagination">
-  <div class="page-buttons">
-    <button>|&lt;</button>
-    <button>&lt;</button>
-    <button class="page-active">1</button>
-    <button>&gt;</button>
-    <button>&gt;|</button>
-  </div>
-
-  <div class="page-size">
-    <select>
-      <option>20</option>
-    </select>
-    items per page
-  </div>
-
-  <div class="page-total" id="audit-page-total">1 - 1 of 1 items</div>
 </div>
 
 <script src="script.js"></script>

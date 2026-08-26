@@ -25,46 +25,206 @@ document.addEventListener("click", function () {
   });
 });
 
+// 수입검사/제품검사: 상태가 "진행중"인 항목 수를 헤더 🔔 배지에 반영
+const INSPECTION_KEY_PREFIX = "lims-inspections-";
+const INSPECTION_SEED = {
+  incoming: [
+    { name: "원재료 A 입고검사", status: "진행중", date: "2026.08.20" },
+    { name: "원재료 B 입고검사", status: "완료", date: "2026.08.18" },
+    { name: "원재료 C 입고검사", status: "진행중", date: "2026.08.22" }
+  ],
+  product: [
+    { name: "완제품 X 출하검사", status: "진행중", date: "2026.08.21" },
+    { name: "완제품 Y 출하검사", status: "대기", date: "2026.08.23" }
+  ]
+};
+
+function getInspections(type) {
+  const saved = localStorage.getItem(INSPECTION_KEY_PREFIX + type);
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  const seed = INSPECTION_SEED[type] || [];
+  localStorage.setItem(INSPECTION_KEY_PREFIX + type, JSON.stringify(seed));
+  return seed;
+}
+
+function saveInspections(type, items) {
+  localStorage.setItem(INSPECTION_KEY_PREFIX + type, JSON.stringify(items));
+}
+
+function countInProgress(type) {
+  return getInspections(type).filter(function (item) {
+    return item.status === "진행중";
+  }).length;
+}
+
+function updateBellBadge() {
+  const badge = document.querySelector(".badge.blue");
+  if (!badge) {
+    return;
+  }
+  badge.textContent = countInProgress("incoming") + countInProgress("product");
+}
+
+function renderInspectionTable(type) {
+  const tbody = document.getElementById("inspection-table-body");
+  if (!tbody) {
+    return;
+  }
+
+  const items = getInspections(type);
+  tbody.innerHTML = "";
+
+  items.forEach(function (item, index) {
+    const row = document.createElement("tr");
+    row.innerHTML =
+      "<td>" + (index + 1) + "</td>" +
+      "<td>" + item.name + "</td>" +
+      '<td class="status-cell"></td>' +
+      "<td>" + item.date + "</td>";
+
+    const select = document.createElement("select");
+    ["진행중", "완료", "대기"].forEach(function (option) {
+      const optionEl = document.createElement("option");
+      optionEl.textContent = option;
+      if (option === item.status) {
+        optionEl.selected = true;
+      }
+      select.appendChild(optionEl);
+    });
+
+    select.addEventListener("change", function () {
+      item.status = select.value;
+      saveInspections(type, items);
+      updateBellBadge();
+    });
+
+    row.querySelector(".status-cell").appendChild(select);
+    tbody.appendChild(row);
+  });
+}
+
+const inspectionType = document.body.dataset.inspectionType;
+if (inspectionType) {
+  renderInspectionTable(inspectionType);
+}
+
+updateBellBadge();
+
+// 출하성적서: 상태가 "고객응답대기"인 항목 수를 헤더 📋 배지에 반영
+const CERTIFICATE_KEY = "lims-certificates";
+const CERTIFICATE_SEED = [
+  { title: "260316 삼성파운드리 출하성적서", status: "고객응답대기", date: "2026.08.19" },
+  { title: "260210 Nikka Finetech 출하성적서", status: "완료", date: "2026.08.15" },
+  { title: "260318 렘택 출하성적서", status: "고객응답대기", date: "2026.08.23" }
+];
+
+function getCertificates() {
+  const saved = localStorage.getItem(CERTIFICATE_KEY);
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  localStorage.setItem(CERTIFICATE_KEY, JSON.stringify(CERTIFICATE_SEED));
+  return CERTIFICATE_SEED;
+}
+
+function saveCertificates(items) {
+  localStorage.setItem(CERTIFICATE_KEY, JSON.stringify(items));
+}
+
+function updateGreenBadge() {
+  const badge = document.querySelector(".badge.green");
+  if (!badge) {
+    return;
+  }
+  const total = getCertificates().filter(function (item) {
+    return item.status === "고객응답대기";
+  }).length;
+  badge.textContent = total;
+}
+
+function renderCertificateTable() {
+  const tbody = document.getElementById("certificate-table-body");
+  if (!tbody) {
+    return;
+  }
+
+  const items = getCertificates();
+  tbody.innerHTML = "";
+
+  items.forEach(function (item, index) {
+    const row = document.createElement("tr");
+    row.innerHTML =
+      "<td>" + (index + 1) + "</td>" +
+      "<td>" + item.title + "</td>" +
+      '<td class="status-cell"></td>' +
+      "<td>" + item.date + "</td>";
+
+    const select = document.createElement("select");
+    ["고객응답대기", "완료"].forEach(function (option) {
+      const optionEl = document.createElement("option");
+      optionEl.textContent = option;
+      if (option === item.status) {
+        optionEl.selected = true;
+      }
+      select.appendChild(optionEl);
+    });
+
+    select.addEventListener("change", function () {
+      item.status = select.value;
+      saveCertificates(items);
+      updateGreenBadge();
+    });
+
+    row.querySelector(".status-cell").appendChild(select);
+    tbody.appendChild(row);
+  });
+}
+
+renderCertificateTable();
+updateGreenBadge();
+
 // 상단 nav 메뉴: 클릭하면 카테고리별 링크가 담긴 큰 메뉴가 아래 펼쳐짐
 const NAV_MEGA_CONTENT = {
   "시험관리": [
     [
-      { heading: "시험", links: ["수입검사", "공정검사", "제품검사", "이력확인"] },
-      { heading: "성적서", links: ["출하성적서"] }
+      { icon: "📄", heading: "시험", links: ["수입검사", "공정검사", "제품검사", "이력확인"] },
+      { icon: "📄", heading: "성적서", links: ["출하성적서"] }
     ],
     [
-      { heading: "제품정보", links: ["제품", "원료"] }
+      { icon: "🔍", heading: "제품정보", links: ["제품", "원료"] }
     ]
   ],
   "품질보증": [
     [
-      { heading: "부적합관리", links: ["원료부적합대책서", "제품부적합대책서"] },
-      { heading: "Audit관리", links: ["공급사 Audit", "고객사 Audit"] }
+      { icon: "📄", heading: "부적합관리", links: ["원료부적합대책서", "제품부적합대책서"] },
+      { icon: "🖥️", heading: "Audit관리", links: ["공급사 Audit", "고객사 Audit"] }
     ],
     [
-      { heading: "고객관리", links: ["PCN관리", "고객요청관리", "고객불만관리", "변경관리"] }
+      { icon: "✉️", heading: "고객관리", links: ["PCN관리", "고객요청관리", "고객불만관리", "변경관리"] }
     ],
     [
-      { heading: "SPC관리", links: ["SPC(종합)", "SPC(관리도)", "SPC(공정능력)"] },
-      { heading: "내부심사", links: ["내부심사"] }
+      { icon: "📊", heading: "SPC관리", links: ["SPC(종합)", "SPC(관리도)", "SPC(공정능력)"] },
+      { icon: "✉️", heading: "내부심사", links: ["내부심사"] }
     ]
   ],
   "자원관리": [
     [
-      { heading: "시약/소모품 관리", links: ["시약 관리", "소모품 관리"] },
-      { heading: "문서관리", links: ["기술문서", "규격문서"] }
+      { icon: "🧪", heading: "시약/소모품 관리", links: ["시약 관리", "소모품 관리"] },
+      { icon: "🔗", heading: "문서관리", links: ["기술문서", "규격문서"] }
     ],
     [
-      { heading: "장비관리", links: ["장비관리", "점검이력", "분석실PM점검"] },
-      { heading: "LTL", links: ["원료LTL", "사업장LTL"] }
+      { icon: "🗄️", heading: "장비관리", links: ["장비관리", "점검이력", "분석실PM점검"] },
+      { icon: "📋", heading: "LTL", links: ["원료LTL", "사업장LTL"] }
     ]
   ],
   "현황": [
     [
-      { heading: "등록현황", links: ["문서", "시험"] }
+      { icon: "📊", heading: "등록현황", links: ["문서", "시험"] }
     ],
     [
-      { heading: "일분포현황", links: ["문서-기술문서", "문서-규격문서", "시험성적서", "시험의뢰서"] }
+      { icon: "📋", heading: "일분포현황", links: ["문서-기술문서", "문서-규격문서", "시험성적서", "시험의뢰서"] }
     ]
   ]
 };
@@ -80,13 +240,21 @@ function renderNavMegaMenu(navLabel) {
 
   navMegaMenu.innerHTML = "";
 
+  const titleEl = document.createElement("div");
+  titleEl.className = "nav-mega-title";
+  titleEl.textContent = navLabel;
+  navMegaMenu.appendChild(titleEl);
+
+  const columnsWrap = document.createElement("div");
+  columnsWrap.className = "nav-mega-columns";
+
   columns.forEach(function (groups) {
     const columnEl = document.createElement("div");
     columnEl.className = "nav-mega-column";
 
     groups.forEach(function (group) {
       const heading = document.createElement("h4");
-      heading.textContent = group.heading;
+      heading.textContent = (group.icon ? group.icon + " " : "") + group.heading;
       columnEl.appendChild(heading);
 
       group.links.forEach(function (linkText) {
@@ -97,8 +265,10 @@ function renderNavMegaMenu(navLabel) {
       });
     });
 
-    navMegaMenu.appendChild(columnEl);
+    columnsWrap.appendChild(columnEl);
   });
+
+  navMegaMenu.appendChild(columnsWrap);
 }
 
 function closeNavMegaMenu() {
@@ -667,6 +837,27 @@ function renderTabBar() {
 ensureCurrentTabRegistered();
 renderTabBar();
 
+// 새로고침 버튼: 페이지를 다시 불러와서 저장 안 한 편집 내용을 원래대로 되돌림
+document.querySelectorAll(".page-refresh-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    window.location.reload();
+  });
+});
+
+// 삭제 버튼: 확인 후 이 탭을 닫고 이전 화면으로 이동
+const deleteRecordBtn = document.getElementById("delete-record-btn");
+
+if (deleteRecordBtn) {
+  deleteRecordBtn.addEventListener("click", function () {
+    const confirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!confirmed) {
+      return;
+    }
+
+    closeTab(getCurrentUrl());
+  });
+}
+
 // 공급사 옆 검색 아이콘을 누르면 공급사 상세 페이지로 이동 (탭도 같이 추가)
 const vendorSearchBtn = document.querySelector(".vendor-search-btn");
 
@@ -677,11 +868,127 @@ if (vendorSearchBtn) {
   });
 }
 
-// 목록에서 ID를 누르면 상세 화면으로 이동 (탭도 같이 추가)
-const auditDetailLink = document.getElementById("audit-detail-1");
+// 공급사 Audit 목록: localStorage에 저장된 데이터로 표를 그림 (삭제하면 실제로 목록에서 빠짐)
+const AUDIT_KEY = "lims-audits";
+const AUDIT_SEED = [
+  {
+    id: "MFA-0000002",
+    status: "진행중",
+    supplier: "Nikka Finetech",
+    title: "260316 삼성파운드리 원재료 집중점검 요청",
+    evalDate: "2026.03.27",
+    result: "종합결과",
+    aiCount: "0/2",
+    creator: "박신영",
+    createdAt: "2026.03.27 09:49:24",
+    modifier: "관리자",
+    modifiedAt: "2026.08.12 11:02:16",
+    tabLabel: "260316 삼성파운드리 원재료 집중점검 요청 A",
+    detailUrl: "detail.html"
+  }
+];
 
-if (auditDetailLink) {
-  auditDetailLink.addEventListener("click", function () {
-    openTab("260316 삼성파운드리 원재료 집중점검 요청 A", "📄", "detail.html");
+function getAudits() {
+  const saved = localStorage.getItem(AUDIT_KEY);
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  localStorage.setItem(AUDIT_KEY, JSON.stringify(AUDIT_SEED));
+  return AUDIT_SEED;
+}
+
+function saveAudits(items) {
+  localStorage.setItem(AUDIT_KEY, JSON.stringify(items));
+}
+
+function renderAuditTable() {
+  const tbody = document.getElementById("audit-table-body");
+  if (!tbody) {
+    return;
+  }
+
+  const items = getAudits();
+  tbody.innerHTML = "";
+
+  items.forEach(function (item, index) {
+    const row = document.createElement("tr");
+    row.innerHTML =
+      "<td>" + (index + 1) + "</td>" +
+      "<td>" +
+      '<button class="row-action" title="ProfileCard New Window">↗️</button>' +
+      '<button class="row-action" title="ProfileCard With Window">🪟</button>' +
+      '<button class="row-action" title="복사 생성">📄</button>' +
+      '<button class="row-action" title="Download">⬇️</button>' +
+      "</td>" +
+      '<td class="id-cell"></td>' +
+      "<td>" + item.status + "</td>" +
+      "<td>" + item.supplier + "</td>" +
+      "<td>" + item.title + "</td>" +
+      "<td>" + item.evalDate + "</td>" +
+      "<td>" + item.result + "</td>" +
+      "<td>" + item.aiCount + "</td>" +
+      "<td>" + item.creator + "</td>" +
+      "<td>" + item.createdAt + "</td>" +
+      "<td>" + item.modifier + "</td>" +
+      "<td>" + item.modifiedAt + "</td>";
+
+    const idCell = row.querySelector(".id-cell");
+    if (item.detailUrl) {
+      const link = document.createElement("a");
+      link.href = item.detailUrl;
+      link.className = "id-link";
+      link.textContent = item.id;
+      link.addEventListener("click", function () {
+        openTab(item.tabLabel, "📄", item.detailUrl);
+      });
+      idCell.appendChild(link);
+    } else {
+      idCell.textContent = item.id;
+    }
+
+    tbody.appendChild(row);
+  });
+
+  const pageTotal = document.getElementById("audit-page-total");
+  if (pageTotal) {
+    const total = items.length;
+    pageTotal.textContent = (total === 0 ? "0" : "1") + " - " + total + " of " + total + " items";
+  }
+}
+
+renderAuditTable();
+
+// "+ 추가" 누르면 목록에 새 공급사 Audit 행 생성 (상세 페이지는 아직 없어서 ID는 텍스트로만 표시)
+const auditAddBtn = document.getElementById("audit-add-btn");
+
+if (auditAddBtn) {
+  auditAddBtn.addEventListener("click", function () {
+    const items = getAudits();
+
+    const nextNumber = items.reduce(function (max, item) {
+      const match = item.id.match(/\d+$/);
+      const num = match ? parseInt(match[0], 10) : 0;
+      return Math.max(max, num);
+    }, 0) + 1;
+
+    const today = new Date();
+    const dateText = today.getFullYear() + "." + String(today.getMonth() + 1).padStart(2, "0") + "." + String(today.getDate()).padStart(2, "0");
+
+    items.push({
+      id: "MFA-" + String(nextNumber).padStart(7, "0"),
+      status: "진행중",
+      supplier: "",
+      title: "새 공급사 Audit",
+      evalDate: dateText,
+      result: "",
+      aiCount: "0/0",
+      creator: "품질팀",
+      createdAt: dateText,
+      modifier: "",
+      modifiedAt: ""
+    });
+
+    saveAudits(items);
+    renderAuditTable();
   });
 }

@@ -817,15 +817,31 @@ th {
 
 .nav-mega-menu {
   display: none;
-  gap: 60px;
   background-color: white;
   color: #333;
   border-bottom: 1px solid #ddd;
-  padding: 25px 30px;
 }
 
 .nav-mega-menu.open {
   display: flex;
+}
+
+.nav-mega-title {
+  min-width: 700px;
+  padding: 25px 40px 25px 30px;
+  background-color: #f0f4f8;
+  border-right: 1px solid #ddd;
+  font-size: 22px;
+  font-weight: bold;
+  color: #222;
+  text-align: right;
+}
+
+.nav-mega-columns {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+  padding: 25px 60px;
 }
 
 .nav-mega-column {

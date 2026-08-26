@@ -26,8 +26,8 @@
             <button class="icon-badge">🔔<span class="badge blue">0</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-item">✔ 작업중인시험</div>
-              <a href="#" class="dropdown-link">수입검사 더보기 →</a>
-              <a href="#" class="dropdown-link">제품검사 더보기 →</a>
+              <a href="incoming-inspection.html" class="dropdown-link">수입검사 더보기 →</a>
+              <a href="product-inspection.html" class="dropdown-link">제품검사 더보기 →</a>
             </div>
           </div>
 
@@ -35,7 +35,7 @@
             <button class="icon-badge">📋<span class="badge green">0</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-item">✔ 고객응답대기 출하성적서</div>
-              <a href="#" class="dropdown-link">출하성적서 더보기 →</a>
+              <a href="shipment-certificate.html" class="dropdown-link">출하성적서 더보기 →</a>
             </div>
           </div>
         </div>
@@ -74,8 +74,8 @@
           <span>ℹ️ 상세정보</span>
           <div class="detail-actions">
             <button id="edit-toggle-btn">✏️ 수정</button>
-            <button>🗑️ 삭제</button>
-            <button>🔄 새로고침</button>
+            <button id="delete-record-btn">🗑️ 삭제</button>
+            <button class="page-refresh-btn">🔄 새로고침</button>
           </div>
         </div>
       </div>
@@ -114,7 +114,7 @@
               </div>
             </div>
 
-            <button class="tree-icon-btn" title="새로고침">🔄</button>
+            <button class="tree-icon-btn page-refresh-btn" title="새로고침">🔄</button>
           </div>
         </div>
         <div class="tree-item">
@@ -127,7 +127,7 @@
           <h4>연결정보</h4>
           <div class="sidebar-section-actions">
             <button class="tree-icon-btn" title="설정">⚙️</button>
-            <button class="tree-icon-btn" title="새로고침">🔄</button>
+            <button class="tree-icon-btn page-refresh-btn" title="새로고침">🔄</button>
             <button class="tree-icon-btn" title="접기">⌃</button>
             <button class="tree-icon-btn" title="닫기">✕</button>
           </div>
@@ -208,7 +208,7 @@
 
           <button>🔍 검색</button>
           <button id="ai-add-btn">➕ 추가</button>
-          <button>🔄 새로고침</button>
+          <button class="page-refresh-btn">🔄 새로고침</button>
         </div>
 
         <div class="ai-table-wrapper">
