@@ -1,3 +1,180 @@
+// 연결정보: ⌃(접기)는 아래 목록 숨기고/보이기, ✕(닫기)는 연결정보 섹션 전체 숨김
+document.querySelectorAll('.tree-icon-btn[title="접기"]').forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    const section = btn.closest(".sidebar-section");
+    const list = section ? section.querySelector(".link-list") : null;
+    if (!list) {
+      return;
+    }
+    const isHidden = list.style.display === "none";
+    list.style.display = isHidden ? "" : "none";
+    btn.textContent = isHidden ? "⌃" : "⌄";
+  });
+});
+
+document.querySelectorAll(".connection-refresh-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    const section = btn.closest(".sidebar-section");
+    if (!section) {
+      return;
+    }
+    const list = section.querySelector(".link-list");
+    const collapseBtn = section.querySelector('.tree-icon-btn[title="접기"]');
+    if (list) {
+      list.style.display = "";
+    }
+    if (collapseBtn) {
+      collapseBtn.textContent = "⌃";
+    }
+  });
+});
+
+document.querySelectorAll('.tree-icon-btn[title="닫기"]').forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    const section = btn.closest(".sidebar-section");
+    if (section) {
+      section.style.display = "none";
+    }
+  });
+});
+
+// 검색바 커스텀 드롭다운(상태/날짜선택): 클릭하면 열리고, 옵션 클릭하면 선택됨
+document.querySelectorAll(".search-select").forEach(function (select) {
+  const trigger = select.querySelector(".search-select-trigger");
+  const searchInput = select.querySelector(".search-select-search-input");
+  const options = select.querySelectorAll(".search-select-option");
+
+  trigger.addEventListener("click", function (event) {
+    event.stopPropagation();
+
+    document.querySelectorAll(".search-select.open").forEach(function (other) {
+      if (other !== select) {
+        other.classList.remove("open");
+      }
+    });
+
+    select.classList.toggle("open");
+
+    if (select.classList.contains("open") && searchInput) {
+      searchInput.value = "";
+      options.forEach(function (option) {
+        option.classList.remove("hidden-option");
+      });
+      searchInput.focus();
+    }
+  });
+
+  options.forEach(function (option) {
+    option.addEventListener("click", function () {
+      trigger.textContent = option.dataset.value;
+      select.classList.remove("open");
+    });
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener("click", function (event) {
+      event.stopPropagation();
+    });
+
+    searchInput.addEventListener("input", function () {
+      const query = searchInput.value.trim().toLowerCase();
+      options.forEach(function (option) {
+        const matches = option.textContent.toLowerCase().includes(query);
+        option.classList.toggle("hidden-option", !matches);
+      });
+    });
+  }
+});
+
+document.addEventListener("click", function () {
+  document.querySelectorAll(".search-select.open").forEach(function (select) {
+    select.classList.remove("open");
+  });
+});
+
+// From/To 날짜칸: 📅는 달력, 🕐는 30분 단위 시간 목록. 텍스트칸에 "날짜 시간"으로 합쳐서 표시
+function setupDateTimeField(textInputId, dateBtnId, timeBtnId) {
+  const textInput = document.getElementById(textInputId);
+  const dateBtn = document.getElementById(dateBtnId);
+  const timeBtn = document.getElementById(timeBtnId);
+
+  if (!textInput || !dateBtn || !timeBtn) {
+    return;
+  }
+
+  const hiddenDateInput = document.createElement("input");
+  hiddenDateInput.type = "date";
+  hiddenDateInput.className = "ai-hidden-date-input";
+  dateBtn.insertAdjacentElement("afterend", hiddenDateInput);
+
+  function getParts() {
+    const raw = textInput.value.trim();
+    const spaceIndex = raw.indexOf(" ");
+    if (spaceIndex === -1) {
+      return { datePart: raw, timePart: "" };
+    }
+    return { datePart: raw.slice(0, spaceIndex), timePart: raw.slice(spaceIndex + 1) };
+  }
+
+  function setParts(datePart, timePart) {
+    textInput.value = [datePart, timePart].filter(function (part) {
+      return part;
+    }).join(" ");
+  }
+
+  dateBtn.addEventListener("click", function () {
+    if (hiddenDateInput.showPicker) {
+      hiddenDateInput.showPicker();
+    } else {
+      hiddenDateInput.focus();
+    }
+  });
+
+  hiddenDateInput.addEventListener("change", function () {
+    const parts = getParts();
+    setParts(formatIsoDateForDisplay(hiddenDateInput.value), parts.timePart);
+  });
+
+  const timeMenu = document.createElement("div");
+  timeMenu.className = "time-picker-menu";
+  for (let hour = 0; hour < 24; hour++) {
+    [0, 30].forEach(function (minute) {
+      const label = String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+      const item = document.createElement("div");
+      item.className = "time-picker-item";
+      item.textContent = label;
+      item.addEventListener("click", function () {
+        const parts = getParts();
+        setParts(parts.datePart, label);
+        timeMenu.classList.remove("open");
+      });
+      timeMenu.appendChild(item);
+    });
+  }
+  timeBtn.insertAdjacentElement("afterend", timeMenu);
+
+  timeBtn.addEventListener("click", function (event) {
+    event.stopPropagation();
+    document.querySelectorAll(".time-picker-menu.open").forEach(function (menu) {
+      if (menu !== timeMenu) {
+        menu.classList.remove("open");
+      }
+    });
+    timeMenu.classList.toggle("open");
+  });
+}
+
+setupDateTimeField("from-input", "from-date", "from-time");
+setupDateTimeField("to-input", "to-date", "to-time");
+
+document.addEventListener("click", function (event) {
+  document.querySelectorAll(".time-picker-menu.open").forEach(function (menu) {
+    if (!menu.contains(event.target)) {
+      menu.classList.remove("open");
+    }
+  });
+});
+
 // 헤더 OFF/ON 토글 버튼
 document.querySelectorAll(".toggle-off").forEach(function (btn) {
   btn.addEventListener("click", function () {
@@ -469,25 +646,40 @@ if (filterWrap) {
   });
 }
 
-// 정렬 아이콘 버튼을 누르면 오름/내림차순이 반대로 바뀜
+// 정렬: 아이콘을 눌러도, 목록 항목을 직접 눌러도 그 항목으로 체크가 옮겨감
 const sortIconBtn = document.getElementById("sort-icon-btn");
 const sortMenuItems = document.querySelectorAll("#sort-dropdown-menu .dropdown-item");
+
+function selectSortOption(label) {
+  sortMenuItems.forEach(function (item) {
+    const itemLabel = item.textContent.replace("✔ ", "").trim();
+    item.textContent = itemLabel === label ? "✔ " + itemLabel : itemLabel;
+  });
+
+  if (sortIconBtn) {
+    if (label === "최신순") {
+      sortIconBtn.textContent = "🔽";
+    } else if (label === "오래된순") {
+      sortIconBtn.textContent = "🔼";
+    }
+  }
+}
 
 if (sortIconBtn) {
   sortIconBtn.addEventListener("click", function (event) {
     event.stopPropagation();
-
     const isAscending = sortIconBtn.textContent === "🔼";
-    sortIconBtn.textContent = isAscending ? "🔽" : "🔼";
-
-    const nextChecked = isAscending ? "최신순" : "오래된순";
-
-    sortMenuItems.forEach(function (item) {
-      const label = item.textContent.replace("✔ ", "");
-      item.textContent = label === nextChecked ? "✔ " + label : label;
-    });
+    selectSortOption(isAscending ? "최신순" : "오래된순");
   });
 }
+
+sortMenuItems.forEach(function (item) {
+  item.addEventListener("click", function (event) {
+    event.stopPropagation();
+    const label = item.textContent.replace("✔ ", "").trim();
+    selectSortOption(label);
+  });
+});
 
 // 수정 버튼을 누르면 편집 모드 켜고 끄기 (일반 텍스트 필드도 같이 입력 가능하게)
 const editToggleBtn = document.getElementById("edit-toggle-btn");
@@ -523,6 +715,9 @@ function enterFieldEditMode() {
       input.type = "text";
       input.className = "field-input";
       input.value = currentValue;
+      if (span.dataset.fieldRequired) {
+        input.dataset.fieldRequired = span.dataset.fieldRequired;
+      }
       parent.replaceChild(input, span);
     }
   });
@@ -537,6 +732,9 @@ function exitFieldEditMode() {
     if (fieldEl.tagName === "SELECT") {
       span.dataset.fieldType = fieldEl.dataset.fieldType;
     }
+    if (fieldEl.dataset.fieldRequired) {
+      span.dataset.fieldRequired = fieldEl.dataset.fieldRequired;
+    }
     span.textContent = fieldEl.value;
     fieldEl.parentElement.replaceChild(span, fieldEl);
   });
@@ -547,6 +745,18 @@ const remarkTextarea = document.querySelector(".remark-textarea");
 if (editToggleBtn && infoTable) {
   editToggleBtn.addEventListener("click", function () {
     const turningOn = !infoTable.classList.contains("edit-mode");
+
+    if (!turningOn) {
+      const requiredFields = document.querySelectorAll('.field-input[data-field-required="true"]');
+      const hasEmpty = Array.from(requiredFields).some(function (field) {
+        return field.value.trim() === "";
+      });
+      if (hasEmpty) {
+        alert("필수 입력 항목을 입력해주세요.");
+        return;
+      }
+    }
+
     infoTable.classList.toggle("edit-mode");
 
     if (turningOn) {
@@ -1126,13 +1336,51 @@ function saveAudits(items) {
   localStorage.setItem(AUDIT_KEY, JSON.stringify(items));
 }
 
+function getSearchSelectValue(wrapId) {
+  const wrap = document.getElementById(wrapId);
+  const trigger = wrap ? wrap.querySelector(".search-select-trigger") : null;
+  return trigger ? trigger.textContent.trim() : "";
+}
+
+// "검색" 버튼을 눌렀을 때의 조건만 저장 (입력칸에 타이핑하는 동안에는 필터링 안 됨)
+let auditFilter = null;
+
+function matchesAuditFilter(item) {
+  if (!auditFilter) {
+    return true;
+  }
+
+  if (auditFilter.idQuery && !item.id.toLowerCase().includes(auditFilter.idQuery)) {
+    return false;
+  }
+  if (auditFilter.nameQuery && !item.title.includes(auditFilter.nameQuery)) {
+    return false;
+  }
+  if (auditFilter.statusQuery && auditFilter.statusQuery !== "상태" && item.status !== auditFilter.statusQuery) {
+    return false;
+  }
+
+  if (auditFilter.dateFieldQuery === "생성일" || auditFilter.dateFieldQuery === "수정일") {
+    const rawDate = auditFilter.dateFieldQuery === "생성일" ? item.createdAt : item.modifiedAt;
+    const datePart = rawDate ? rawDate.split(" ")[0] : "";
+    if (auditFilter.fromQuery && datePart < auditFilter.fromQuery) {
+      return false;
+    }
+    if (auditFilter.toQuery && datePart > auditFilter.toQuery) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function renderAuditTable() {
   const tbody = document.getElementById("audit-table-body");
   if (!tbody) {
     return;
   }
 
-  const items = getAudits();
+  const items = getAudits().filter(matchesAuditFilter);
   tbody.innerHTML = "";
 
   items.forEach(function (item, index) {
@@ -1183,7 +1431,30 @@ function renderAuditTable() {
 
 renderAuditTable();
 
-// "+ 추가" 누르면 목록에 새 공급사 Audit 행 생성 (상세 페이지는 아직 없어서 ID는 텍스트로만 표시)
+// "검색" 누르면 그 시점의 입력값으로 필터 조건을 저장하고 다시 그림
+const auditSearchBtn = document.getElementById("audit-search-btn");
+
+if (auditSearchBtn) {
+  auditSearchBtn.addEventListener("click", function () {
+    const idInput = document.getElementById("audit-search-id");
+    const nameInput = document.getElementById("audit-search-name");
+    const fromInput = document.getElementById("from-input");
+    const toInput = document.getElementById("to-input");
+
+    auditFilter = {
+      idQuery: idInput ? idInput.value.trim().toLowerCase() : "",
+      nameQuery: nameInput ? nameInput.value.trim() : "",
+      statusQuery: getSearchSelectValue("status-select"),
+      dateFieldQuery: getSearchSelectValue("date-field-select"),
+      fromQuery: fromInput ? fromInput.value.trim().split(" ")[0] : "",
+      toQuery: toInput ? toInput.value.trim().split(" ")[0] : ""
+    };
+
+    renderAuditTable();
+  });
+}
+
+// "+ 추가" 누르면 검색 입력칸에 지금 넣어둔 값을 그대로 써서 새 행 생성
 const auditAddBtn = document.getElementById("audit-add-btn");
 
 if (auditAddBtn) {
@@ -1199,11 +1470,18 @@ if (auditAddBtn) {
     const today = new Date();
     const dateText = today.getFullYear() + "." + String(today.getMonth() + 1).padStart(2, "0") + "." + String(today.getDate()).padStart(2, "0");
 
+    const idInput = document.getElementById("audit-search-id");
+    const nameInput = document.getElementById("audit-search-name");
+    const statusValue = getSearchSelectValue("status-select");
+
+    const typedId = idInput ? idInput.value.trim() : "";
+    const typedName = nameInput ? nameInput.value.trim() : "";
+
     items.push({
-      id: "MFA-" + String(nextNumber).padStart(7, "0"),
-      status: "진행중",
+      id: typedId || "MFA-" + String(nextNumber).padStart(7, "0"),
+      status: statusValue && statusValue !== "상태" ? statusValue : "진행중",
       supplier: "",
-      title: "새 공급사 Audit",
+      title: typedName || "새 공급사 Audit",
       evalDate: dateText,
       result: "",
       aiCount: "0/0",

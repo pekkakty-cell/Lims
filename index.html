@@ -65,40 +65,59 @@
   <h2>공급사 Audit</h2>
   <div class="title-actions">
     <div class="buttons">
-      <button>검색</button>
+      <button id="audit-search-btn">검색</button>
       <button id="audit-add-btn">+ 추가</button>
       <button>엑셀출력</button>
     </div>
     <div class="select-group">
       선택:
-      <button class="select-icon">📊</button>
-      <button class="select-icon">📄</button>
-      <button class="select-icon">☑️</button>
+      <button class="select-icon" title="새로생성[New]">📊</button>
+      <button class="select-icon" title="체크인">📄</button>
+      <button class="select-icon" title="승인완료">☑️</button>
     </div>
   </div>
 </div>
 
 <div class="search-bar">
-  <input type="text" placeholder="ID">
-  <input type="text" placeholder="명칭">
+  <input type="text" placeholder="ID" id="audit-search-id">
+  <input type="text" placeholder="명칭" id="audit-search-name">
 
-  <select>
-    <option>상태</option>
-  </select>
+  <div class="search-select" id="status-select">
+    <button type="button" class="search-select-trigger">상태</button>
+    <div class="search-select-menu">
+      <div class="search-select-search">
+        <input type="text" class="search-select-search-input" placeholder="🔍">
+      </div>
+      <div class="search-select-options">
+        <div class="search-select-option" data-value="상태">상태</div>
+        <div class="search-select-option" data-value="진행중">진행중</div>
+        <div class="search-select-option" data-value="완료">완료</div>
+        <div class="search-select-option" data-value="검증대기">검증대기</div>
+      </div>
+    </div>
+  </div>
 
-  <select class="date-select">
-    <option>날짜선택</option>
-  </select>
+  <div class="search-select" id="date-field-select">
+    <button type="button" class="search-select-trigger">날짜선택</button>
+    <div class="search-select-menu">
+      <div class="search-select-options">
+        <div class="search-select-option" data-value="날짜선택">날짜선택</div>
+        <div class="search-select-option" data-value="생성일">생성일</div>
+        <div class="search-select-option" data-value="수정일">수정일</div>
+      </div>
+    </div>
+  </div>
 
   <div class="date-input">
-    <input type="text" placeholder="From">
+    <input type="text" placeholder="From" id="from-input">
     <button class="icon-btn" id="from-date">📅</button>
     <button class="icon-btn" id="from-time">🕐</button>
   </div>
 
   <div class="date-input">
-    <input type="text" placeholder="To">
-    <span>📅</span><span>🕐</span>
+    <input type="text" placeholder="To" id="to-input">
+    <button class="icon-btn" id="to-date">📅</button>
+    <button class="icon-btn" id="to-time">🕐</button>
   </div>
 </div>
 
