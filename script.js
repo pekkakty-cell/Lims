@@ -1,3 +1,152 @@
+// 헤더 OFF/ON 토글 버튼
+document.querySelectorAll(".toggle-off").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    const isOn = btn.classList.toggle("on");
+    btn.textContent = isOn ? "⏻ ON" : "⏻ OFF";
+  });
+});
+
+// 페이지네이션 공용 로직: 표 하나당 이 함수를 한 번 호출해서 페이지 넘기기 버튼/번호/총계를 관리
+function setupPagination(options) {
+  let currentPage = 1;
+
+  function getPageSize() {
+    return parseInt(options.pageSizeSelect.value, 10);
+  }
+
+  function render() {
+    const allRows = options.getAllRows();
+    const pageSize = getPageSize();
+    const total = allRows.length;
+    const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+    if (currentPage > totalPages) {
+      currentPage = totalPages;
+    }
+    if (currentPage < 1) {
+      currentPage = 1;
+    }
+
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    allRows.forEach(function (row, index) {
+      row.style.display = index >= startIndex && index < endIndex ? "" : "none";
+    });
+
+    options.pageNumberList.innerHTML = "";
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      const btn = document.createElement("button");
+      btn.textContent = String(pageNum);
+      if (pageNum === currentPage) {
+        btn.className = "page-active";
+      }
+      btn.addEventListener("click", function () {
+        currentPage = pageNum;
+        render();
+      });
+      options.pageNumberList.appendChild(btn);
+    }
+
+    options.firstBtn.disabled = currentPage === 1;
+    options.prevBtn.disabled = currentPage === 1;
+    options.nextBtn.disabled = currentPage === totalPages;
+    options.lastBtn.disabled = currentPage === totalPages;
+
+    if (options.pageTotalEl) {
+      if (total === 0) {
+        options.pageTotalEl.textContent = options.emptyText || "No items to display";
+      } else {
+        options.pageTotalEl.textContent = (startIndex + 1) + " - " + Math.min(endIndex, total) + " of " + total + " items";
+      }
+    }
+  }
+
+  options.firstBtn.addEventListener("click", function () {
+    currentPage = 1;
+    render();
+  });
+  options.prevBtn.addEventListener("click", function () {
+    currentPage = Math.max(currentPage - 1, 1);
+    render();
+  });
+  options.nextBtn.addEventListener("click", function () {
+    currentPage = currentPage + 1;
+    render();
+  });
+  options.lastBtn.addEventListener("click", function () {
+    const total = options.getAllRows().length;
+    currentPage = Math.max(Math.ceil(total / getPageSize()), 1);
+    render();
+  });
+  options.pageSizeSelect.addEventListener("change", function () {
+    currentPage = 1;
+    render();
+  });
+
+  return { render: render };
+}
+
+// 사이드바 폭: 오른쪽 경계를 드래그해서 넓이 조절 (CSS 변수로 위쪽 타이틀 박스랑 폭을 공유)
+const sidebarResizeHandle = document.getElementById("sidebar-resize-handle");
+const sidebarLeft = document.querySelector(".sidebar-left");
+
+if (sidebarResizeHandle && sidebarLeft) {
+  let isDraggingSidebar = false;
+
+  sidebarResizeHandle.addEventListener("mousedown", function (event) {
+    isDraggingSidebar = true;
+    sidebarResizeHandle.classList.add("dragging");
+    event.preventDefault();
+  });
+
+  document.addEventListener("mousemove", function (event) {
+    if (!isDraggingSidebar) {
+      return;
+    }
+    const newWidth = event.clientX - sidebarLeft.getBoundingClientRect().left;
+    const clampedWidth = Math.min(Math.max(newWidth, 180), 500);
+    document.documentElement.style.setProperty("--sidebar-width", clampedWidth + "px");
+  });
+
+  document.addEventListener("mouseup", function () {
+    if (isDraggingSidebar) {
+      isDraggingSidebar = false;
+      sidebarResizeHandle.classList.remove("dragging");
+    }
+  });
+}
+
+// Tree 정보 목록 높이: 연결정보 바로 위 경계를 드래그해서 조절
+const sidebarVResizeHandle = document.getElementById("sidebar-vertical-resize-handle");
+const treeItemList = document.getElementById("tree-item-list");
+
+if (sidebarVResizeHandle && treeItemList) {
+  let isDraggingV = false;
+
+  sidebarVResizeHandle.addEventListener("mousedown", function (event) {
+    isDraggingV = true;
+    sidebarVResizeHandle.classList.add("dragging");
+    event.preventDefault();
+  });
+
+  document.addEventListener("mousemove", function (event) {
+    if (!isDraggingV) {
+      return;
+    }
+    const newHeight = event.clientY - treeItemList.getBoundingClientRect().top;
+    const clampedHeight = Math.min(Math.max(newHeight, 40), 500);
+    treeItemList.style.height = clampedHeight + "px";
+  });
+
+  document.addEventListener("mouseup", function () {
+    if (isDraggingV) {
+      isDraggingV = false;
+      sidebarVResizeHandle.classList.remove("dragging");
+    }
+  });
+}
+
 // 필터/정렬 드롭다운: 화살표 버튼 누르면 열리고, 다시 누르면 닫힘
 const dropdownWraps = document.querySelectorAll(".dropdown-wrap");
 
@@ -450,8 +599,6 @@ dateIconButtons.forEach(function (btn) {
 // 첨부파일: 파일 선택하면 표에 행 추가, 🗑️ 삭제로 그 행 지우기
 const fileUploadInput = document.getElementById("file-upload-input");
 const fileTableBody = document.getElementById("file-table-body");
-const filePageTotal = document.getElementById("file-page-total");
-const filePageActive = document.getElementById("file-page-active");
 
 function todayAsDisplayDate() {
   const now = new Date();
@@ -459,6 +606,24 @@ function todayAsDisplayDate() {
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
   return year + "." + month + "." + day;
+}
+
+let filePaginator = null;
+
+if (fileTableBody) {
+  filePaginator = setupPagination({
+    getAllRows: function () {
+      return Array.from(fileTableBody.querySelectorAll("tr:not(.empty-row)"));
+    },
+    firstBtn: document.getElementById("file-first-btn"),
+    prevBtn: document.getElementById("file-prev-btn"),
+    nextBtn: document.getElementById("file-next-btn"),
+    lastBtn: document.getElementById("file-last-btn"),
+    pageNumberList: document.getElementById("file-page-number-list"),
+    pageSizeSelect: document.getElementById("file-page-size"),
+    pageTotalEl: document.getElementById("file-page-total"),
+    emptyText: "No items to display"
+  });
 }
 
 function updateFileTableState() {
@@ -475,11 +640,8 @@ function updateFileTableState() {
     emptyRow.remove();
   }
 
-  if (filePageTotal) {
-    filePageTotal.textContent = total === 0 ? "No items to display" : "1 - " + total + " of " + total + " items";
-  }
-  if (filePageActive) {
-    filePageActive.textContent = total === 0 ? "0" : "1";
+  if (filePaginator) {
+    filePaginator.render();
   }
 }
 
@@ -504,6 +666,10 @@ function addFileRow(fileName) {
 
   fileTableBody.appendChild(row);
   updateFileTableState();
+}
+
+if (filePaginator) {
+  filePaginator.render();
 }
 
 if (fileUploadInput) {
@@ -541,7 +707,67 @@ if (uploadArea) {
 // A/I List: ➕ 추가로 새 행 만들고, 🗑️ 연결삭제로 그 행 지우기
 const aiTableBody = document.getElementById("ai-table-body");
 const aiAddBtn = document.getElementById("ai-add-btn");
-const aiPageTotal = document.getElementById("ai-page-total");
+
+let aiPaginator = null;
+
+if (aiTableBody) {
+  aiPaginator = setupPagination({
+    getAllRows: function () {
+      return Array.from(aiTableBody.querySelectorAll("tr:not(.filtered-out)"));
+    },
+    firstBtn: document.getElementById("ai-first-btn"),
+    prevBtn: document.getElementById("ai-prev-btn"),
+    nextBtn: document.getElementById("ai-next-btn"),
+    lastBtn: document.getElementById("ai-last-btn"),
+    pageNumberList: document.getElementById("ai-page-number-list"),
+    pageSizeSelect: document.getElementById("ai-page-size"),
+    pageTotalEl: document.getElementById("ai-page-total"),
+    emptyText: "No items to display"
+  });
+}
+
+// A/I List 검색: 상태/부서담당/내용/기한 조건에 맞는 행만 남기고 나머지는 숨김
+const aiSearchBtn = document.getElementById("ai-search-btn");
+
+function applyAiFilter() {
+  if (!aiTableBody) {
+    return;
+  }
+
+  const statusEl = document.getElementById("ai-filter-status");
+  const deptEl = document.getElementById("ai-filter-dept");
+  const contentEl = document.getElementById("ai-filter-content");
+  const dueEl = document.getElementById("ai-filter-due");
+
+  const statusValue = statusEl ? statusEl.value : "전체";
+  const deptValue = deptEl ? deptEl.value.trim() : "";
+  const contentValue = contentEl ? contentEl.value.trim() : "";
+  const dueValue = dueEl ? dueEl.value.trim() : "";
+
+  aiTableBody.querySelectorAll("tr").forEach(function (row) {
+    const cells = row.children;
+    const rowStatus = cells[3] ? cells[3].textContent.trim() : "";
+    const rowContent = cells[4] ? cells[4].textContent.trim() : "";
+    const rowDept = cells[5] ? cells[5].textContent.trim() : "";
+    const rowDue = cells[6] ? cells[6].textContent.trim() : "";
+
+    const isMatch =
+      (statusValue === "전체" || rowStatus === statusValue) &&
+      (deptValue === "" || rowDept.includes(deptValue)) &&
+      (contentValue === "" || rowContent.includes(contentValue)) &&
+      (dueValue === "" || rowDue.includes(dueValue));
+
+    row.classList.toggle("filtered-out", !isMatch);
+  });
+
+  if (aiPaginator) {
+    aiPaginator.render();
+  }
+}
+
+if (aiSearchBtn) {
+  aiSearchBtn.addEventListener("click", applyAiFilter);
+}
 
 function renumberAiRows() {
   const rows = aiTableBody.querySelectorAll("tr");
@@ -551,10 +777,8 @@ function renumberAiRows() {
     noCell.textContent = index + 1;
   });
 
-  const total = rows.length;
-  if (aiPageTotal) {
-    const from = total === 0 ? 0 : 1;
-    aiPageTotal.textContent = from + " - " + total + " of " + total + " items";
+  if (aiPaginator) {
+    aiPaginator.render();
   }
 }
 
@@ -696,6 +920,7 @@ if (aiTableBody) {
   aiTableBody.querySelectorAll("tr").forEach(function (row) {
     wireAiDeleteButton(row);
   });
+  renumberAiRows();
 }
 
 if (aiAddBtn && aiTableBody) {

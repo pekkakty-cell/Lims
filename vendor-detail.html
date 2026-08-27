@@ -85,6 +85,7 @@
 
   <div class="detail-layout">
     <aside class="sidebar-left">
+      <div class="sidebar-left-inner">
       <div class="sidebar-section">
         <div class="sidebar-section-header">
           <h4>Tree 정보</h4>
@@ -117,10 +118,14 @@
             <button class="tree-icon-btn page-refresh-btn" title="새로고침">🔄</button>
           </div>
         </div>
-        <div class="tree-item">
-          Nikka Finetech
+        <div class="tree-item-list" id="tree-item-list">
+          <div class="tree-item">
+            Nikka Finetech
+          </div>
         </div>
       </div>
+
+      <div class="sidebar-vertical-resize-handle" id="sidebar-vertical-resize-handle"></div>
 
       <div class="sidebar-section">
         <div class="sidebar-section-header">
@@ -140,7 +145,10 @@
           <li>하위구성</li>
         </ul>
       </div>
+      </div>
     </aside>
+
+    <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
 
     <main class="detail-content">
 

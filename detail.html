@@ -85,6 +85,7 @@
 
   <div class="detail-layout">
     <aside class="sidebar-left">
+      <div class="sidebar-left-inner">
       <div class="sidebar-section">
         <div class="sidebar-section-header">
           <h4>Tree 정보</h4>
@@ -117,10 +118,14 @@
             <button class="tree-icon-btn page-refresh-btn" title="새로고침">🔄</button>
           </div>
         </div>
-        <div class="tree-item">
-          260316 삼성파운드리 원재료 집중점검 요청 MFA-0000002
+        <div class="tree-item-list" id="tree-item-list">
+          <div class="tree-item">
+            260316 삼성파운드리 원재료 집중점검 요청 MFA-0000002
+          </div>
         </div>
       </div>
+
+      <div class="sidebar-vertical-resize-handle" id="sidebar-vertical-resize-handle"></div>
 
       <div class="sidebar-section">
         <div class="sidebar-section-header">
@@ -137,7 +142,10 @@
           <li>A/I List</li>
         </ul>
       </div>
+      </div>
     </aside>
+
+    <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
 
     <main class="detail-content">
 
@@ -188,25 +196,26 @@
 
         <div class="ai-search-bar">
           <span class="ai-label">상태</span>
-          <select>
+          <select id="ai-filter-status">
             <option>전체</option>
             <option>진행중</option>
             <option>완료</option>
+            <option>대기</option>
           </select>
 
           <span class="ai-label">부서/담당</span>
-          <input type="text">
+          <input type="text" id="ai-filter-dept">
 
           <span class="ai-label">내용</span>
-          <input type="text">
+          <input type="text" id="ai-filter-content">
 
           <span class="ai-label">기한</span>
           <div class="date-input">
-            <input type="text">
+            <input type="text" id="ai-filter-due">
             <button class="icon-btn">📅</button>
           </div>
 
-          <button>🔍 검색</button>
+          <button id="ai-search-btn">🔍 검색</button>
           <button id="ai-add-btn">➕ 추가</button>
           <button class="page-refresh-btn">🔄 새로고침</button>
         </div>
@@ -249,14 +258,14 @@
         <div class="ai-pagination">
           <div class="page-left">
             <div class="page-buttons">
-              <button>|&lt;</button>
-              <button>&lt;</button>
-              <button class="page-active">1</button>
-              <button>&gt;</button>
-              <button>&gt;|</button>
+              <button id="ai-first-btn">|&lt;</button>
+              <button id="ai-prev-btn">&lt;</button>
+              <span class="page-number-list" id="ai-page-number-list"></span>
+              <button id="ai-next-btn">&gt;</button>
+              <button id="ai-last-btn">&gt;|</button>
             </div>
             <div class="page-size">
-              <select>
+              <select id="ai-page-size">
                 <option>10</option>
                 <option selected>20</option>
                 <option>50</option>
@@ -299,14 +308,14 @@
         <div class="file-pagination">
           <div class="page-left">
             <div class="page-buttons">
-              <button>|&lt;</button>
-              <button>&lt;</button>
-              <button class="page-active" id="file-page-active">0</button>
-              <button>&gt;</button>
-              <button>&gt;|</button>
+              <button id="file-first-btn">|&lt;</button>
+              <button id="file-prev-btn">&lt;</button>
+              <span class="page-number-list" id="file-page-number-list"></span>
+              <button id="file-next-btn">&gt;</button>
+              <button id="file-last-btn">&gt;|</button>
             </div>
             <div class="page-size">
-              <select>
+              <select id="file-page-size">
                 <option>10</option>
                 <option selected>20</option>
                 <option>50</option>
