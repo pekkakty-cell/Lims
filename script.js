@@ -167,12 +167,133 @@ function setupDateTimeField(textInputId, dateBtnId, timeBtnId) {
 setupDateTimeField("from-input", "from-date", "from-time");
 setupDateTimeField("to-input", "to-date", "to-time");
 
+// 시간 없이 날짜만 있는 필드(예: A/I List 검색바의 기한): 📅 누르면 달력, 고르면 텍스트칸에 채움
+function setupSimpleDateField(textInputId, dateBtnId) {
+  const textInput = document.getElementById(textInputId);
+  const dateBtn = document.getElementById(dateBtnId);
+
+  if (!textInput || !dateBtn) {
+    return;
+  }
+
+  const hiddenDateInput = document.createElement("input");
+  hiddenDateInput.type = "date";
+  hiddenDateInput.className = "ai-hidden-date-input";
+  dateBtn.insertAdjacentElement("afterend", hiddenDateInput);
+
+  dateBtn.addEventListener("click", function () {
+    if (hiddenDateInput.showPicker) {
+      hiddenDateInput.showPicker();
+    } else {
+      hiddenDateInput.focus();
+    }
+  });
+
+  hiddenDateInput.addEventListener("change", function () {
+    textInput.value = formatIsoDateForDisplay(hiddenDateInput.value);
+  });
+}
+
+setupSimpleDateField("ai-filter-due", "ai-filter-due-date-btn");
+
 document.addEventListener("click", function (event) {
   document.querySelectorAll(".time-picker-menu.open").forEach(function (menu) {
     if (!menu.contains(event.target)) {
       menu.classList.remove("open");
     }
   });
+});
+
+// 공용 모달 창: 처음 열 때 한 번만 DOM에 만들어두고 재사용
+function openModal(title, bodyHtml) {
+  let overlay = document.getElementById("app-modal-overlay");
+
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "app-modal-overlay";
+    overlay.className = "modal-overlay";
+    overlay.innerHTML =
+      '<div class="modal-box">' +
+      '<div class="modal-header"><h3 id="app-modal-title"></h3><button class="modal-close-btn" id="app-modal-close-btn">✕</button></div>' +
+      '<div class="modal-body" id="app-modal-body"></div>' +
+      "</div>";
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", function (event) {
+      if (event.target === overlay) {
+        closeModal();
+      }
+    });
+    document.getElementById("app-modal-close-btn").addEventListener("click", closeModal);
+  }
+
+  document.getElementById("app-modal-title").textContent = title;
+  document.getElementById("app-modal-body").innerHTML = bodyHtml;
+  overlay.classList.add("open");
+}
+
+function closeModal() {
+  const overlay = document.getElementById("app-modal-overlay");
+  if (overlay) {
+    overlay.classList.remove("open");
+  }
+}
+
+// 프로필 드롭다운: 정보수정 / 비밀번호 변경 / 시스템 정보
+document.querySelectorAll(".user-dropdown-menu .dropdown-link").forEach(function (link) {
+  const label = link.textContent.trim();
+
+  if (label.includes("정보수정")) {
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      openModal(
+        "정보수정",
+        '<div class="modal-field"><label>이름</label><input type="text" value="품질팀"></div>' +
+        '<div class="modal-field"><label>부서</label><input type="text" value="품질팀"></div>' +
+        '<div class="modal-field"><label>이메일</label><input type="text" placeholder="이메일 입력"></div>' +
+        '<div class="modal-actions"><button id="modal-save-btn">저장</button><button id="modal-cancel-btn">취소</button></div>'
+      );
+      document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
+      document.getElementById("modal-save-btn").addEventListener("click", function () {
+        alert("정보가 저장되었습니다.");
+        closeModal();
+      });
+    });
+  } else if (label.includes("비밀번호 변경")) {
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      openModal(
+        "비밀번호 변경",
+        '<div class="modal-field"><label>현재 비밀번호</label><input type="password"></div>' +
+        '<div class="modal-field"><label>새 비밀번호</label><input type="password"></div>' +
+        '<div class="modal-field"><label>새 비밀번호 확인</label><input type="password"></div>' +
+        '<div class="modal-actions"><button id="modal-save-btn">변경</button><button id="modal-cancel-btn">취소</button></div>'
+      );
+      document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
+      document.getElementById("modal-save-btn").addEventListener("click", function () {
+        const newPw = document.querySelectorAll(".modal-field input[type=password]")[1].value;
+        const confirmPw = document.querySelectorAll(".modal-field input[type=password]")[2].value;
+        if (!newPw || newPw !== confirmPw) {
+          alert("새 비밀번호가 일치하지 않습니다.");
+          return;
+        }
+        alert("비밀번호가 변경되었습니다.");
+        closeModal();
+      });
+    });
+  } else if (label.includes("시스템 정보")) {
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      openModal(
+        "시스템 정보",
+        '<div class="modal-field-static">시스템명: 랩데이터통합관리 LIMS</div>' +
+        '<div class="modal-field-static">버전: 1.0.0</div>' +
+        '<div class="modal-field-static">접속 계정: 품질팀 · 품질팀</div>' +
+        '<div class="modal-actions"><button id="modal-cancel-btn">닫기</button></div>'
+      );
+      document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
+    });
+  }
 });
 
 // 헤더 OFF/ON 토글 버튼
@@ -1143,7 +1264,7 @@ if (aiAddBtn && aiTableBody) {
       '<td><span class="ai-cell-display" data-cell-type="status">진행중</span></td>' +
       '<td><input type="text" class="ai-cell-input"></td>' +
       '<td><input type="text" class="ai-cell-input"></td>' +
-      '<td><span class="ai-cell-display" data-cell-type="date"></span></td>';
+      "<td></td>";
 
     aiTableBody.appendChild(row);
     wireAiDeleteButton(row);
@@ -1153,6 +1274,9 @@ if (aiAddBtn && aiTableBody) {
     row.querySelectorAll(".ai-cell-display").forEach(function (span) {
       wireAiCellDisplay(span);
     });
+
+    row.lastElementChild.appendChild(createAiDateEditWidget(""));
+
     renumberAiRows();
   });
 }
@@ -1271,6 +1395,24 @@ function renderTabBar() {
 
 ensureCurrentTabRegistered();
 renderTabBar();
+
+// 브레드크럼: 지금까지 열어서 들어온 탭 경로(Home > 목록 > ... > 현재 화면)를 반영
+const breadcrumbEl = document.querySelector(".breadcrumb");
+
+if (breadcrumbEl) {
+  const currentUrl = getCurrentUrl();
+  const tabs = getOpenTabs();
+  const currentIndex = tabs.findIndex(function (tab) {
+    return tab.url === currentUrl;
+  });
+
+  if (currentIndex >= 0) {
+    const pathLabels = tabs.slice(0, currentIndex + 1).map(function (tab) {
+      return tab.label;
+    });
+    breadcrumbEl.textContent = "🏠 Home > " + pathLabels.join(" > ");
+  }
+}
 
 // 새로고침 버튼: 페이지를 다시 불러와서 저장 안 한 편집 내용을 원래대로 되돌림
 document.querySelectorAll(".page-refresh-btn").forEach(function (btn) {
@@ -1422,14 +1564,65 @@ function renderAuditTable() {
     tbody.appendChild(row);
   });
 
-  const pageTotal = document.getElementById("audit-page-total");
-  if (pageTotal) {
-    const total = items.length;
-    pageTotal.textContent = (total === 0 ? "0" : "1") + " - " + total + " of " + total + " items";
+  if (auditPaginator) {
+    auditPaginator.render();
   }
 }
 
+let auditPaginator = null;
+
+if (document.getElementById("audit-table-body")) {
+  auditPaginator = setupPagination({
+    getAllRows: function () {
+      return Array.from(document.querySelectorAll("#audit-table-body tr"));
+    },
+    firstBtn: document.getElementById("audit-first-btn"),
+    prevBtn: document.getElementById("audit-prev-btn"),
+    nextBtn: document.getElementById("audit-next-btn"),
+    lastBtn: document.getElementById("audit-last-btn"),
+    pageNumberList: document.getElementById("audit-page-number-list"),
+    pageSizeSelect: document.getElementById("audit-page-size"),
+    pageTotalEl: document.getElementById("audit-page-total"),
+    emptyText: "No items to display"
+  });
+}
+
 renderAuditTable();
+
+// "엑셀출력": 지금 화면에 보이는(검색 필터 적용된) 목록을 CSV 파일로 내려받기
+const auditExcelBtn = document.getElementById("audit-excel-btn");
+
+if (auditExcelBtn) {
+  auditExcelBtn.addEventListener("click", function () {
+    const headers = ["ID", "상태", "공급사", "제목", "평가일자", "종합결과", "A/I 개수", "생성자", "생성일", "수정자", "수정일"];
+    const items = getAudits().filter(matchesAuditFilter);
+
+    const rows = items.map(function (item) {
+      return [
+        item.id, item.status, item.supplier, item.title, item.evalDate,
+        item.result, item.aiCount, item.creator, item.createdAt, item.modifier, item.modifiedAt
+      ];
+    });
+
+    const csvLines = [headers].concat(rows).map(function (row) {
+      return row.map(function (cell) {
+        return '"' + String(cell).replaceAll('"', '""') + '"';
+      }).join(",");
+    });
+
+    const csvContent = "﻿" + csvLines.join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "공급사Audit_" + todayAsDisplayDate().replaceAll(".", "") + ".csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  });
+}
 
 // "검색" 누르면 그 시점의 입력값으로 필터 조건을 저장하고 다시 그림
 const auditSearchBtn = document.getElementById("audit-search-btn");

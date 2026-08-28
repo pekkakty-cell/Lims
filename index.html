@@ -67,7 +67,7 @@
     <div class="buttons">
       <button id="audit-search-btn">검색</button>
       <button id="audit-add-btn">+ 추가</button>
-      <button>엑셀출력</button>
+      <button id="audit-excel-btn">엑셀출력</button>
     </div>
     <div class="select-group">
       선택:
@@ -147,16 +147,19 @@
 
 <div class="pagination">
   <div class="page-buttons">
-    <button>|&lt;</button>
-    <button>&lt;</button>
-    <button class="page-active">1</button>
-    <button>&gt;</button>
-    <button>&gt;|</button>
+    <button id="audit-first-btn">|&lt;</button>
+    <button id="audit-prev-btn">&lt;</button>
+    <span class="page-number-list" id="audit-page-number-list"></span>
+    <button id="audit-next-btn">&gt;</button>
+    <button id="audit-last-btn">&gt;|</button>
   </div>
 
   <div class="page-size">
-    <select>
-      <option>20</option>
+    <select id="audit-page-size">
+      <option>10</option>
+      <option selected>20</option>
+      <option>50</option>
+      <option>100</option>
     </select>
     items per page
   </div>
