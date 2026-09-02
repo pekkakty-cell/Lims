@@ -3,6 +3,11 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+    if (!localStorage.getItem("lims-auth")) {
+      window.location.href = "login.html";
+    }
+  </script>
   <title>공급사 Audit</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -70,12 +75,21 @@
         <h2 class="page-title">공급사 Audit</h2>
       </div>
       <div class="page-header-right">
-        <div class="section-header">
+        <div class="section-header" id="detail-toolbar">
           <span>ℹ️ 상세정보</span>
           <div class="detail-actions">
             <button id="edit-toggle-btn">✏️ 수정</button>
             <button id="delete-record-btn">🗑️ 삭제</button>
             <button class="page-refresh-btn">🔄 새로고침</button>
+          </div>
+        </div>
+        <div class="section-header" id="ailist-toolbar" style="display:none;">
+          <span>ℹ️ A/I List</span>
+          <div class="detail-actions">
+            <button id="ailist-view-add-btn">➕ 추가</button>
+            <button id="ailist-view-search-add-btn">🔍➕ 검색추가</button>
+            <button id="ailist-view-delete-btn">🗑️ 삭제</button>
+            <button id="ailist-view-unlink-btn">🔗🗑️ 연결삭제</button>
           </div>
         </div>
       </div>
@@ -119,7 +133,7 @@
           </div>
         </div>
         <div class="tree-item-list" id="tree-item-list">
-          <div class="tree-item">
+          <div class="tree-item" id="detail-tree-item">
             260316 삼성파운드리 원재료 집중점검 요청 MFA-0000002
           </div>
         </div>
@@ -138,8 +152,8 @@
           </div>
         </div>
         <ul class="link-list">
-          <li class="link-active">상세정보</li>
-          <li>A/I List</li>
+          <li class="link-active" id="sidebar-link-detail">상세정보</li>
+          <li id="sidebar-link-ailist">A/I List</li>
         </ul>
       </div>
       </div>
@@ -147,7 +161,7 @@
 
     <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
 
-    <main class="detail-content">
+    <main class="detail-content" id="detail-main-content">
 
       <div class="info-block">
         <div class="info-block-header">
@@ -157,34 +171,36 @@
         <table class="info-table">
           <tr>
             <th><span class="required-mark">*</span>ID</th>
-            <td><span class="field-display" data-field-required="true">MFA-0000002</span></td>
+            <td><span class="field-display" data-field-required="true" id="detail-id-field">MFA-0000002</span></td>
             <th>상태</th>
-            <td><span class="field-display" data-field-type="status">진행중</span></td>
+            <td><span class="field-display" data-field-type="status" id="detail-status-field">진행중</span></td>
           </tr>
           <tr>
             <th>제목</th>
-            <td><span class="field-display">260316 삼성파운드리 원재료 집중점검 요청</span></td>
+            <td><span class="field-display" id="detail-title-field">260316 삼성파운드리 원재료 집중점검 요청</span></td>
             <th>종합결과</th>
-            <td><span class="field-display">종합결과</span></td>
+            <td><span class="field-display" id="detail-result-field">종합결과</span></td>
           </tr>
           <tr>
             <th>공급사</th>
             <td>
-              <span>Nikka Finetech</span>
-              <button class="vendor-search-btn" title="공급사 상세보기">🔍</button>
+              <div class="input-with-icon">
+                <span class="field-display" id="detail-supplier-field">Nikka Finetech</span>
+                <button class="vendor-search-btn" title="공급사 상세보기">🔍</button>
+              </div>
             </td>
             <th>평가결과 요약</th>
-            <td><span class="field-display">평가결과 요약</span></td>
+            <td><span class="field-display" id="detail-resultsummary-field">평가결과 요약</span></td>
           </tr>
           <tr>
             <th>평가일자</th>
             <td>
-              <span class="date-display">2026.03.27</span>
+              <span class="date-display" id="detail-evaldate-field">2026.03.27</span>
               <button class="date-icon-btn" title="날짜 선택">📅</button>
             </td>
             <th>방문예정일</th>
             <td>
-              <span class="date-display">2026.09.11</span>
+              <span class="date-display" id="detail-visitdate-field">2026.09.11</span>
               <button class="date-icon-btn" title="날짜 선택">📅</button>
             </td>
           </tr>
@@ -235,7 +251,7 @@
             </thead>
             <tbody id="ai-table-body">
             <tr>
-              <td>➕</td>
+              <td><button class="ai-view-btn" title="View">➕</button></td>
               <td><button>🗑️ 연결삭제</button></td>
               <td>1</td>
               <td><span class="ai-cell-display" data-cell-type="status">진행중</span></td>
@@ -244,7 +260,7 @@
               <td><span class="ai-cell-display" data-cell-type="date"></span></td>
             </tr>
             <tr>
-              <td>➕</td>
+              <td><button class="ai-view-btn" title="View">➕</button></td>
               <td><button>🗑️ 연결삭제</button></td>
               <td>2</td>
               <td><span class="ai-cell-display" data-cell-type="status">진행중</span></td>
@@ -343,6 +359,26 @@
         </div>
       </div>
 
+    </main>
+
+    <main class="detail-content" id="ailist-main-content" style="display:none;">
+      <div class="ai-table-wrapper">
+        <table class="ai-table">
+          <thead>
+          <tr>
+            <th>N</th>
+            <th>C</th>
+            <th>S</th>
+            <th>Action</th>
+            <th>ID</th>
+            <th>상태</th>
+            <th>부서/담당</th>
+            <th>내용</th>
+          </tr>
+          </thead>
+          <tbody id="ailist-view-table-body"></tbody>
+        </table>
+      </div>
     </main>
   </div>
 

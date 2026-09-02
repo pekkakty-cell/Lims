@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <script>
+    if (!localStorage.getItem("lims-auth")) {
+      window.location.href = "login.html";
+    }
+  </script>
+  <title>공급사 Audit</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body data-tab-label="공급사 Audit 추가" data-tab-icon="📄">
+
+<div class="detail-page">
+  <div class="sticky-top">
+
+    <header>
+      <div class="logo">랩데이터통합관리 LIMS</div>
+      <div class="right-group">
+        <nav>
+          <a href="#">시험관리</a>
+          <a href="#">품질보증</a>
+          <a href="#">자원관리</a>
+          <a href="#">현황</a>
+        </nav>
+        <div class="header-icons">
+          <div class="dropdown-wrap">
+            <button class="icon-badge">🔔<span class="badge blue">0</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item">✔ 작업중인시험</div>
+              <a href="incoming-inspection.html" class="dropdown-link">수입검사 더보기 →</a>
+              <a href="product-inspection.html" class="dropdown-link">제품검사 더보기 →</a>
+            </div>
+          </div>
+
+          <div class="dropdown-wrap">
+            <button class="icon-badge">📋<span class="badge green">0</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item">✔ 고객응답대기 출하성적서</div>
+              <a href="shipment-certificate.html" class="dropdown-link">출하성적서 더보기 →</a>
+            </div>
+          </div>
+        </div>
+        <button class="toggle-off">⏻ OFF</button>
+        <div class="dropdown-wrap">
+          <button class="user-menu">
+            <span class="avatar"></span>
+            <span class="user-info">품질팀 · 품질팀</span>
+            <span class="user-caret">▾</span>
+          </button>
+          <div class="dropdown-menu user-dropdown-menu">
+            <div class="dropdown-item">🕐 로그아웃까지 95:52</div>
+            <a href="#" class="dropdown-link">👤 정보수정</a>
+            <a href="#" class="dropdown-link">⚙️ 비밀번호 변경</a>
+            <a href="#" class="dropdown-link">❓ 시스템 정보</a>
+            <a href="#" class="dropdown-link">⏻ Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="nav-mega-menu" id="nav-mega-menu"></div>
+
+    <div class="breadcrumb">
+      🏠 Home &gt; 공급사 Audit
+    </div>
+
+    <div class="tabs"></div>
+
+    <div class="add-toolbar">
+      <button id="add-save-btn">저장</button>
+      <button id="add-cancel-btn">취소</button>
+    </div>
+
+  </div>
+
+  <main class="detail-content add-content">
+
+    <div class="info-block">
+      <div class="info-block-header">
+        <h3 class="section-title">일반정보</h3>
+        <span class="required-note">* 필수 입력</span>
+      </div>
+      <table class="info-table">
+        <tr>
+          <th><span class="required-mark">*</span>ID</th>
+          <td><input type="text" class="field-input" id="add-id-input" disabled></td>
+          <th>상태</th>
+          <td>
+            <select class="field-input" id="add-status-select">
+              <option>진행중</option>
+              <option>완료</option>
+              <option>검증대기</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <th>제목</th>
+          <td><input type="text" class="field-input" id="add-title-input"></td>
+          <th>종합결과</th>
+          <td><input type="text" class="field-input" id="add-result-input"></td>
+        </tr>
+        <tr>
+          <th>공급사</th>
+          <td>
+            <div class="input-with-icon">
+              <input type="text" class="field-input" id="add-supplier-input">
+              <button class="supplier-pick-btn" id="add-vendor-search-btn" title="공급사 검색">🔍</button>
+            </div>
+          </td>
+          <th>평가결과 요약</th>
+          <td><input type="text" class="field-input" id="add-result-summary-input"></td>
+        </tr>
+        <tr>
+          <th>평가일자</th>
+          <td>
+            <div class="date-input">
+              <input type="text" id="add-evaldate-input">
+              <button id="add-evaldate-date-btn">📅</button>
+            </div>
+          </td>
+          <th>방문예정일</th>
+          <td>
+            <div class="date-input">
+              <input type="text" id="add-visitdate-input">
+              <button id="add-visitdate-date-btn">📅</button>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

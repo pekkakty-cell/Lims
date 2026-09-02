@@ -3,11 +3,16 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>공급사</title>
+  <script>
+    if (!localStorage.getItem("lims-auth")) {
+      window.location.href = "login.html";
+    }
+  </script>
+  <title>공급사 Audit</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body data-tab-label="Nikka Finetech" data-tab-icon="🏢">
+<body data-tab-label="Nikka Finetech" data-tab-icon="🏢" data-page-type="vendor">
 
 <div class="detail-page">
   <div class="sticky-top">
@@ -119,7 +124,7 @@
           </div>
         </div>
         <div class="tree-item-list" id="tree-item-list">
-          <div class="tree-item">
+          <div class="tree-item" id="vendor-tree-item">
             Nikka Finetech
           </div>
         </div>
@@ -160,13 +165,13 @@
         <table class="info-table">
           <tr>
             <th><span class="required-mark">*</span>ID</th>
-            <td><span class="field-display" data-field-required="true">VND-0000057</span></td>
+            <td><span class="field-display" data-field-required="true" data-field-readonly="true" id="vendor-id-field">VND-0000057</span></td>
             <th>업체코드</th>
             <td><span class="field-display"></span></td>
           </tr>
           <tr>
             <th>고객명</th>
-            <td colspan="3"><span class="field-display">Nikka Finetech</span></td>
+            <td colspan="3"><span class="field-display" data-field-required="true" id="vendor-name-field">Nikka Finetech</span></td>
           </tr>
           <tr>
             <th>주소</th>

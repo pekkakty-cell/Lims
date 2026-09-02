@@ -3,6 +3,11 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+    if (!localStorage.getItem("lims-auth")) {
+      window.location.href = "login.html";
+    }
+  </script>
   <title>출하성적서</title>
   <link rel="stylesheet" href="style.css">
 </head>
