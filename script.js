@@ -538,9 +538,31 @@ function openFloatingProfileCard(item) {
 }
 
 // "생성" 모달: A/I List에 새 항목을 만들 때 쓰는 입력 폼 (원본 LIMS의 "추가" 버튼 화면과 동일한 구성)
+// "A/I 생성" 화면 — 원본처럼 작은 팝업이 아니라 플로팅 카드 크기의 큰 화면으로 뜸 (저장/취소가 별도 툴바)
 function openAiCreateModal() {
-  const bodyHtml =
+  const existing = document.getElementById("floating-ai-create-card");
+  if (existing) {
+    existing.remove();
+  }
+
+  const card = document.createElement("div");
+  card.className = "floating-card ai-create-card";
+  card.id = "floating-ai-create-card";
+  card.innerHTML =
+    '<div class="floating-card-titlebar">' +
+    "<span>A/I 생성</span>" +
+    '<button class="floating-card-close-btn" title="닫기">✕</button>' +
+    "</div>" +
+    '<div class="ai-item-toolbar section-header">' +
+    '<div class="detail-actions">' +
+    '<button id="ai-create-save-btn">저장</button>' +
+    '<button id="ai-create-cancel-btn">취소</button>' +
+    "</div>" +
+    "</div>" +
+    '<div class="ai-create-body">' +
+    '<div class="info-block">' +
     '<div class="info-block-header"><h3 class="section-title">일반정보</h3><span class="required-note">* 필수 입력</span></div>' +
+    '<div class="ai-item-table-wrapper">' +
     '<table class="info-table">' +
     "<tr>" +
     '<th><span class="required-mark">*</span>ID</th>' +
@@ -561,9 +583,19 @@ function openAiCreateModal() {
     '<td><input type="text" class="field-input" id="ai-create-alert"></td>' +
     "</tr>" +
     "</table>" +
-    '<div class="modal-actions"><button id="ai-create-save-btn">저장</button><button id="ai-create-cancel-btn">취소</button></div>';
+    "</div>" +
+    "</div>" +
+    '<div class="info-block">' +
+    "<h3>📁 파일정보</h3>" +
+    '<div class="upload-area"><label class="upload-btn" for="ai-create-file-input">파일선택<input type="file" id="ai-create-file-input" hidden></label><span class="upload-hint">파일을 여기에 끌어다 놓으세요.</span></div>' +
+    '<div class="file-table-wrapper"><table class="file-table">' +
+    '<thead><tr><th class="col-func">기능</th><th class="col-file">파일명</th><th class="col-writer">작성자</th><th class="col-date">작성일</th></tr></thead>' +
+    '<tbody><tr class="empty-row"></tr></tbody>' +
+    "</table></div>" +
+    "</div>" +
+    "</div>";
 
-  openModal("생성", bodyHtml, { wide: true });
+  document.body.appendChild(card);
 
   setupSimpleDateField("ai-create-due", "ai-create-due-btn");
 
@@ -573,7 +605,13 @@ function openAiCreateModal() {
     });
   });
 
-  document.getElementById("ai-create-cancel-btn").addEventListener("click", closeModal);
+  card.querySelector(".floating-card-close-btn").addEventListener("click", function () {
+    card.remove();
+  });
+
+  document.getElementById("ai-create-cancel-btn").addEventListener("click", function () {
+    card.remove();
+  });
 
   document.getElementById("ai-create-save-btn").addEventListener("click", function () {
     const content = document.getElementById("ai-create-content").value.trim();
@@ -583,7 +621,7 @@ function openAiCreateModal() {
       dept: document.getElementById("ai-create-dept").value.trim(),
       due: document.getElementById("ai-create-due").value.trim()
     });
-    closeModal();
+    card.remove();
     refreshAiViewsAfterChange();
   });
 }
@@ -710,7 +748,9 @@ function getAiPool() {
   return seed;
 }
 
-function openAiSearchAddModal() {
+// onSelect를 안 넘기면 기본 동작(지금 Audit의 A/I List에 바로 연결)을 함.
+// 넘기면 그 콜백만 호출하고 모달은 닫음 — 상위구성/하위구성처럼 다른 곳에서 "AI 항목 하나 골라줘" 용도로 재사용
+function openAiSearchAddModal(onSelect) {
   const bodyHtml =
     '<div class="vendor-picker-search">' +
     '<input type="text" id="ai-pool-id" placeholder="ID">' +
@@ -749,9 +789,13 @@ function openAiSearchAddModal() {
       link.textContent = item.id;
       link.addEventListener("click", function (event) {
         event.preventDefault();
-        addAiRow({ status: "진행중", content: item.content, dept: "", due: "" });
+        if (onSelect) {
+          onSelect(item);
+        } else {
+          addAiRow({ status: "진행중", content: item.content, dept: "", due: "" });
+          refreshAiViewsAfterChange();
+        }
         closeModal();
-        refreshAiViewsAfterChange();
       });
       idCell.appendChild(link);
       tbody.appendChild(row);
@@ -1911,7 +1955,8 @@ function updateFileTableState() {
   }
 }
 
-function addFileRow(fileName) {
+// 서버에 실제로 저장된 첨부파일 하나를 표에 행으로 그림 (다운로드/삭제 실제 동작)
+function renderFileRow(attachment) {
   const emptyRow = document.getElementById("file-empty-row");
   if (emptyRow) {
     emptyRow.remove();
@@ -1919,19 +1964,80 @@ function addFileRow(fileName) {
 
   const row = document.createElement("tr");
   row.innerHTML =
-    "<td><button>🗑️ 삭제</button></td>" +
-    "<td>" + fileName + "</td>" +
-    "<td>품질팀</td>" +
-    "<td>" + todayAsDisplayDate() + "</td>";
+    "<td><button class='file-download-btn'>⬇️ 다운로드</button> <button class='file-delete-btn'>🗑️ 삭제</button></td>" +
+    "<td>" + attachment.fileName + "</td>" +
+    "<td>" + (attachment.uploader || "") + "</td>" +
+    "<td>" + isoToDotDate(attachment.uploadedAt) + "</td>";
 
-  const deleteBtn = row.querySelector("button");
-  deleteBtn.addEventListener("click", function () {
-    row.remove();
-    updateFileTableState();
+  row.querySelector(".file-download-btn").addEventListener("click", function () {
+    window.open(API_BASE + "/attachments/" + attachment.id + "/download", "_blank");
+  });
+
+  row.querySelector(".file-delete-btn").addEventListener("click", function () {
+    const confirmed = window.confirm("이 파일을 삭제하시겠습니까?");
+    if (!confirmed) {
+      return;
+    }
+    fetch(API_BASE + "/attachments/" + attachment.id, { method: "DELETE" })
+      .then(function () {
+        row.remove();
+        updateFileTableState();
+      })
+      .catch(function (err) {
+        alert("삭제 실패");
+        console.error("첨부파일 삭제 실패:", err);
+      });
   });
 
   fileTableBody.appendChild(row);
   updateFileTableState();
+}
+
+// 지금 보고 있는 Audit 레코드에 연결된 첨부파일 목록을 서버에서 받아와 표를 다시 그림
+function loadAttachments() {
+  if (!currentDetailRecordId || !fileTableBody) {
+    return;
+  }
+  fetch(API_BASE + "/audits/" + encodeURIComponent(currentDetailRecordId) + "/attachments")
+    .then(function (res) { return res.ok ? res.json() : []; })
+    .then(function (list) {
+      fileTableBody.innerHTML = "";
+      list.forEach(renderFileRow);
+      updateFileTableState();
+    })
+    .catch(function () {});
+}
+
+// 선택/드롭된 파일들을 실제로 서버에 업로드
+function uploadFiles(fileList) {
+  if (!currentDetailRecordId) {
+    alert("저장된 레코드에서만 파일을 첨부할 수 있습니다.");
+    return;
+  }
+
+  Array.from(fileList).forEach(function (file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("uploader", getProfile().name);
+
+    fetch(API_BASE + "/audits/" + encodeURIComponent(currentDetailRecordId) + "/attachments", {
+      method: "POST",
+      body: formData
+    })
+      .then(function (res) {
+        if (!res.ok) {
+          throw new Error("업로드 실패");
+        }
+        return res.json();
+      })
+      .then(function (attachment) {
+        renderFileRow(attachment);
+      })
+      .catch(function (err) {
+        alert("파일 업로드 실패: " + file.name);
+        console.error(err);
+      });
+  });
 }
 
 if (filePaginator) {
@@ -1940,9 +2046,7 @@ if (filePaginator) {
 
 if (fileUploadInput) {
   fileUploadInput.addEventListener("change", function () {
-    Array.from(fileUploadInput.files).forEach(function (file) {
-      addFileRow(file.name);
-    });
+    uploadFiles(fileUploadInput.files);
     fileUploadInput.value = "";
   });
 }
@@ -1963,10 +2067,7 @@ if (uploadArea) {
   uploadArea.addEventListener("drop", function (event) {
     event.preventDefault();
     uploadArea.classList.remove("drag-over");
-
-    Array.from(event.dataTransfer.files).forEach(function (file) {
-      addFileRow(file.name);
-    });
+    uploadFiles(event.dataTransfer.files);
   });
 }
 
@@ -2292,10 +2393,75 @@ function openAiItemCard(ailId, sourceRow) {
   }
 
   const otherViews = {
-    assignee: { title: "담당자", html: emptyTableHtml(["N", "Login", "이름", "부서", "전화", "FAX", "이메일", "비고"]) },
-    parent: { title: "상위구성", html: emptyTableHtml(["N", "C", "S", "Action", "ID", "Revision", "제목", "작성자", "생성일"]) },
-    child: { title: "하위구성", html: emptyTableHtml(["N", "Action", "C", "S", "ID", "리비전", "제목", "생성자", "생성일"]) }
+    assignee: { title: "담당자", html: emptyTableHtml(["N", "Login", "이름", "부서", "전화", "FAX", "이메일", "비고"]) }
   };
+
+  const LINK_VIEW_CONFIG = {
+    parent: { title: "상위구성", headers: ["N", "C", "S", "Action", "ID", "Revision", "제목", "작성자", "생성일"] },
+    child: { title: "하위구성", headers: ["N", "Action", "C", "S", "ID", "리비전", "제목", "생성자", "생성일"] }
+  };
+
+  // 상위구성/하위구성에 연결된 다른 A/I 항목들 — 이 카드가 떠있는 동안만 유지됨(담당자 목록과 동일한 방식)
+  let parentLinks = [];
+  let childLinks = [];
+
+  function getLinksFor(viewKey) {
+    return viewKey === "parent" ? parentLinks : childLinks;
+  }
+
+  function buildLinkRowCells(headers, index, link) {
+    return headers.map(function (h) {
+      if (h === "N") {
+        return String(index + 1);
+      }
+      if (h === "C") {
+        return "📄";
+      }
+      if (h === "S") {
+        return "👤";
+      }
+      if (h === "Action") {
+        return '<button class="link-unlink-btn" data-index="' + index + '">🗑️</button>';
+      }
+      if (h === "ID") {
+        return link.id;
+      }
+      if (h === "Revision" || h === "리비전") {
+        return "";
+      }
+      if (h === "제목") {
+        return link.content;
+      }
+      if (h === "작성자" || h === "생성자") {
+        return link.by;
+      }
+      if (h === "생성일") {
+        return link.date;
+      }
+      return "";
+    }).map(function (cell) {
+      return "<td>" + cell + "</td>";
+    }).join("");
+  }
+
+  function buildLinkedViewHtml(viewKey) {
+    const config = LINK_VIEW_CONFIG[viewKey];
+    const links = getLinksFor(viewKey);
+
+    const rowsHtml = links.map(function (link, index) {
+      return "<tr>" + buildLinkRowCells(config.headers, index, link) + "</tr>";
+    }).join("");
+
+    return (
+      '<div class="ai-search-bar"><button class="link-add-btn">➕ 연결추가</button></div>' +
+      '<div class="ai-item-table-wrapper">' +
+      '<table class="ai-table"><thead><tr>' +
+      config.headers.map(function (h) { return "<th>" + h + "</th>"; }).join("") +
+      "</tr></thead><tbody>" + rowsHtml + "</tbody></table>" +
+      "</div>" +
+      (links.length === 0 ? '<div class="page-total">No items to display</div>' : "")
+    );
+  }
 
   const card = document.createElement("div");
   card.className = "floating-card ai-item-card";
@@ -2387,6 +2553,32 @@ function openAiItemCard(ailId, sourceRow) {
     wireEnterToSearch([assigneeSearchInput], assigneeSearchBtn);
   }
 
+  // 상위구성/하위구성: "+연결추가"는 AI List 검색 모달을 재사용해서 다른 A/I 항목을 골라 연결
+  function wireLinkedViewEvents(viewKey) {
+    const addBtn = mainEl.querySelector(".link-add-btn");
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        openAiSearchAddModal(function (item) {
+          getLinksFor(viewKey).push({
+            id: item.id,
+            content: item.content,
+            by: getProfile().name,
+            date: todayAsDisplayDate()
+          });
+          showView(viewKey);
+        });
+      });
+    }
+
+    mainEl.querySelectorAll(".link-unlink-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const index = parseInt(btn.dataset.index, 10);
+        getLinksFor(viewKey).splice(index, 1);
+        showView(viewKey);
+      });
+    });
+  }
+
   function showView(key) {
     currentView = key;
     editing = false;
@@ -2398,6 +2590,10 @@ function openAiItemCard(ailId, sourceRow) {
       mainEl.innerHTML = buildDetailViewHtml(readSource());
       wireDetailFieldEvents();
       toolbarTitleEl.textContent = "ℹ️ 상세정보";
+    } else if (key === "parent" || key === "child") {
+      mainEl.innerHTML = buildLinkedViewHtml(key);
+      wireLinkedViewEvents(key);
+      toolbarTitleEl.textContent = "ℹ️ " + LINK_VIEW_CONFIG[key].title;
     } else {
       mainEl.innerHTML = otherViews[key].html;
       toolbarTitleEl.textContent = "ℹ️ " + otherViews[key].title;
@@ -2524,6 +2720,9 @@ const ailistMainContent = document.getElementById("ailist-main-content");
 const ailistViewTableBody = document.getElementById("ailist-view-table-body");
 
 // A/I List 전체보기 표: 지금 상세정보 탭에 있는 A/I 행들을 그대로 읽어와서 AIL-XXXXXXX ID를 붙여 보여줌
+// 지금 선택된(클릭해서 강조된) A/I List 전체보기의 행 — 툴바 삭제/연결삭제가 이 행을 대상으로 함
+let selectedAilSourceRow = null;
+
 function renderAiListFullView() {
   if (!ailistViewTableBody || !aiTableBody) {
     return;
@@ -2548,7 +2747,24 @@ function renderAiListFullView() {
       "<td>" + dept + "</td>" +
       "<td>" + content + "</td>";
 
+    if (sourceRow === selectedAilSourceRow) {
+      row.classList.add("ailist-row-selected");
+    }
+
+    // 행 클릭(삭제 버튼 제외)하면 선택/해제 — 툴바의 삭제/연결삭제가 이 선택을 대상으로 함
+    row.addEventListener("click", function (event) {
+      if (event.target.closest(".ailist-unlink-row-btn")) {
+        return;
+      }
+      const turningOn = selectedAilSourceRow !== sourceRow;
+      selectedAilSourceRow = turningOn ? sourceRow : null;
+      renderAiListFullView();
+    });
+
     row.querySelector(".ailist-unlink-row-btn").addEventListener("click", function () {
+      if (selectedAilSourceRow === sourceRow) {
+        selectedAilSourceRow = null;
+      }
       sourceRow.remove();
       renumberAiRows();
       renderAiListFullView();
@@ -2556,6 +2772,18 @@ function renderAiListFullView() {
 
     ailistViewTableBody.appendChild(row);
   });
+}
+
+// 툴바의 "삭제"/"연결삭제": 선택된 행 하나를 지움 (원본에서도 둘 다 같은 동작)
+function deleteSelectedAilRow() {
+  if (!selectedAilSourceRow) {
+    alert("선택된 행이 없습니다.");
+    return;
+  }
+  selectedAilSourceRow.remove();
+  selectedAilSourceRow = null;
+  renumberAiRows();
+  renderAiListFullView();
 }
 
 function showDetailView() {
@@ -2620,6 +2848,16 @@ if (ailistViewSearchAddBtn) {
   ailistViewSearchAddBtn.addEventListener("click", function () {
     openAiSearchAddModal();
   });
+}
+
+const ailistViewDeleteBtn = document.getElementById("ailist-view-delete-btn");
+if (ailistViewDeleteBtn) {
+  ailistViewDeleteBtn.addEventListener("click", deleteSelectedAilRow);
+}
+
+const ailistViewUnlinkBtn = document.getElementById("ailist-view-unlink-btn");
+if (ailistViewUnlinkBtn) {
+  ailistViewUnlinkBtn.addEventListener("click", deleteSelectedAilRow);
 }
 
 // A/I List가 화면에 지금 보이는 중이면(전체보기 탭) 그것도 같이 새로고침
@@ -2801,6 +3039,7 @@ function renderDetailFields() {
 
 renderDetailFields();
 refreshAuditsFromServer();
+loadAttachments();
 
 ensureCurrentTabRegistered();
 renderTabBar();

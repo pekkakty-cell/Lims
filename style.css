@@ -454,6 +454,20 @@ body.login-page {
   border: 1px solid #ddd;
 }
 
+.ai-create-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px 20px;
+}
+
+#ailist-view-table-body tr {
+  cursor: pointer;
+}
+
+#ailist-view-table-body tr.ailist-row-selected {
+  background-color: #dceaf7;
+}
+
 .vendor-picker-search {
   display: flex;
   gap: 8px;
@@ -1067,6 +1081,37 @@ body.login-page {
 
 .info-table td {
   width: 350px;
+}
+
+/* 모달(팝업) 안 입력 폼: info-table(고정 px 컬럼)은 좁은 모달에서 넘치므로,
+   모달 안에서는 표 대신 그리드로 배치해서 모달 폭에 맞게 확실히 줄어들게 함 */
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  margin-bottom: 15px;
+}
+
+.modal-grid-field {
+  min-width: 0;
+}
+
+.modal-grid-field label {
+  display: block;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.modal-grid-field input,
+.modal-grid-field select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-grid-field .date-input,
+.modal-grid-field .input-with-icon {
+  min-width: 0;
 }
 
 .upload-area {
