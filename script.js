@@ -2088,7 +2088,14 @@ function applyMenuLayout(layout) {
   }
 }
 
-if (document.querySelector("header")) {
+// 🪟 플로팅 창(iframe)으로 열린 화면인지 확인 — 이 경우엔 헤더/nav를 아예 숨김
+// (바깥 목록 페이지에 이미 헤더가 있으니 iframe 안에서 또 보일 필요 없음)
+const isEmbeddedFrame = window.self !== window.top;
+if (isEmbeddedFrame) {
+  document.body.classList.add("embedded-frame");
+}
+
+if (!isEmbeddedFrame && document.querySelector("header")) {
   applyMenuLayout(getMenuLayout());
 }
 
@@ -3018,9 +3025,30 @@ function openAiItemCard(ailId, sourceRow) {
     '<aside class="ai-item-sidebar">' +
     '<div class="sidebar-section-header"><h4>Tree 정보</h4>' +
     '<div class="sidebar-section-actions">' +
+    '<div class="dropdown-wrap" id="ai-item-tree-filter-wrap">' +
+    '<div class="split-btn">' +
     '<button class="tree-icon-btn" title="필터">🔽</button>' +
-    '<button class="tree-icon-btn" title="정렬">🔼</button>' +
-    '<button class="tree-icon-btn" title="새로고침">🔄</button>' +
+    '<button class="tree-icon-btn caret-btn">▾</button>' +
+    "</div>" +
+    '<div class="dropdown-menu">' +
+    '<div class="dropdown-item">✔ 이름</div>' +
+    '<div class="dropdown-item">✔ ID</div>' +
+    '<div class="dropdown-item">✔ 상태</div>' +
+    "</div>" +
+    "</div>" +
+    '<div class="dropdown-wrap" id="ai-item-tree-sort-wrap">' +
+    '<div class="split-btn">' +
+    '<button class="tree-icon-btn" id="ai-item-tree-sort-icon-btn" title="정렬">🔼</button>' +
+    '<button class="tree-icon-btn caret-btn">▾</button>' +
+    "</div>" +
+    '<div class="dropdown-menu" id="ai-item-tree-sort-menu">' +
+    '<div class="dropdown-item">이름(A-Z)</div>' +
+    '<div class="dropdown-item">이름(Z-A)</div>' +
+    '<div class="dropdown-item">최신순</div>' +
+    '<div class="dropdown-item">✔ 오래된순</div>' +
+    "</div>" +
+    "</div>" +
+    '<button class="tree-icon-btn" id="ai-item-tree-refresh-btn" title="새로고침">🔄</button>' +
     "</div>" +
     "</div>" +
     '<div class="tree-item-list"><div class="tree-item" id="ai-item-tree-item">' + readSource().content + " " + ailId + " A</div></div>" +
@@ -3036,6 +3064,80 @@ function openAiItemCard(ailId, sourceRow) {
     "</div>";
 
   document.body.appendChild(card);
+
+  // Tree 정보의 필터/정렬 드롭다운 (내 정보 카드와 동일한 패턴)
+  const aiTreeDropdownWraps = card.querySelectorAll(".dropdown-wrap");
+
+  aiTreeDropdownWraps.forEach(function (wrap) {
+    const caretBtn = wrap.querySelector(".caret-btn") || wrap.querySelector("button");
+    caretBtn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      const isOpen = wrap.classList.contains("open");
+      aiTreeDropdownWraps.forEach(function (w) {
+        w.classList.remove("open");
+      });
+      if (!isOpen) {
+        wrap.classList.add("open");
+      }
+    });
+  });
+
+  document.addEventListener("click", function () {
+    aiTreeDropdownWraps.forEach(function (w) {
+      w.classList.remove("open");
+    });
+  });
+
+  card.querySelectorAll("#ai-item-tree-filter-wrap .dropdown-item").forEach(function (item) {
+    item.addEventListener("click", function (event) {
+      event.stopPropagation();
+      const isChecked = item.textContent.startsWith("✔ ");
+      const label = item.textContent.replace("✔ ", "");
+      item.textContent = isChecked ? label : "✔ " + label;
+    });
+  });
+
+  const aiTreeSortIconBtn = card.querySelector("#ai-item-tree-sort-icon-btn");
+  const aiTreeSortMenuItems = card.querySelectorAll("#ai-item-tree-sort-menu .dropdown-item");
+
+  function selectAiTreeSortOption(label) {
+    aiTreeSortMenuItems.forEach(function (item) {
+      const itemLabel = item.textContent.replace("✔ ", "").trim();
+      item.textContent = itemLabel === label ? "✔ " + itemLabel : itemLabel;
+    });
+    if (aiTreeSortIconBtn) {
+      if (label === "최신순") {
+        aiTreeSortIconBtn.textContent = "🔽";
+      } else if (label === "오래된순") {
+        aiTreeSortIconBtn.textContent = "🔼";
+      }
+    }
+  }
+
+  if (aiTreeSortIconBtn) {
+    aiTreeSortIconBtn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      const isAscending = aiTreeSortIconBtn.textContent === "🔼";
+      selectAiTreeSortOption(isAscending ? "최신순" : "오래된순");
+    });
+  }
+
+  aiTreeSortMenuItems.forEach(function (item) {
+    item.addEventListener("click", function (event) {
+      event.stopPropagation();
+      selectAiTreeSortOption(item.textContent.replace("✔ ", "").trim());
+    });
+  });
+
+  const aiTreeRefreshBtn = card.querySelector("#ai-item-tree-refresh-btn");
+  if (aiTreeRefreshBtn) {
+    aiTreeRefreshBtn.addEventListener("click", function () {
+      const treeItem = card.querySelector(".tree-item-list .tree-item");
+      if (treeItem) {
+        treeItem.textContent = readSource().content + " " + ailId + " A";
+      }
+    });
+  }
 
   const mainEl = document.getElementById("ai-item-main");
   const toolbarTitleEl = document.getElementById("ai-item-toolbar-title");

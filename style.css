@@ -1631,6 +1631,12 @@ nav a.nav-active {
   padding-bottom: 18px;
 }
 
+/* 🪟 플로팅 창(iframe)으로 열렸을 때는 헤더/메가메뉴를 숨김 — 바깥 목록 페이지에 이미 헤더가 있음 */
+.embedded-frame header,
+.embedded-frame #nav-mega-menu {
+  display: none;
+}
+
 /* detail.html처럼 자체적으로 height:100vh를 쓰는 페이지는, header가 그 밖으로 빠져나온 만큼 높이를 보정
    (왼쪽메뉴일 때 header는 padding-top/bottom 18px 고정이라 높이가 64px로 일정함) */
 .side-menu-layout .detail-page {
