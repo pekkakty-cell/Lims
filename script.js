@@ -627,13 +627,419 @@ function openAiCreateModal() {
 }
 
 // 담당자(Users) 검색/선택 모달 — "생성" 모달 위에 별도 오버레이로 뜸 (밑에 있는 생성 모달 값이 안 지워지게)
+// 지금 로그인한 사용자는 "내 정보"에서 수정한 최신 내용으로 덮어씀 (생성자/수정자 돋보기에서도 같은 정보가 보이도록)
 function getUserPool() {
-  return [
-    { id: "sypark", name: "박신영", dept: "품질팀", title: "주임" },
-    { id: "admin", name: "관리자", dept: "품질팀", title: "관리자" },
-    { id: "quality1", name: "품질팀 담당자", dept: "품질팀", title: "사원" },
-    { id: "prod1", name: "생산팀 담당자", dept: "생산팀", title: "사원" }
+  const basePool = [
+    { id: "sypark", name: "박신영", dept: "품질팀", title: "주임", phone: "052********", fax: "", email: "sjp*****************", modifier: "박신영", modifiedDate: "2026.06.08", creator: "관리자", createdDate: "2025.11.21" },
+    { id: "admin", name: "관리자", dept: "품질팀", title: "사원", phone: "", fax: "", email: "sjp*****************", modifier: "관리자", modifiedDate: "2026.08.26", creator: "", createdDate: "" },
+    { id: "quality1", name: "품질팀 담당자", dept: "품질팀", title: "사원", phone: "", fax: "", email: "", modifier: "", modifiedDate: "", creator: "", createdDate: "" },
+    { id: "prod1", name: "생산팀 담당자", dept: "생산팀", title: "사원", phone: "", fax: "", email: "", modifier: "", modifiedDate: "", creator: "", createdDate: "" }
   ];
+
+  const auth = getAuth();
+  if (auth) {
+    const myUser = getMyProfileUser();
+    const idx = basePool.findIndex(function (u) {
+      return u.id === auth.id;
+    });
+    if (idx >= 0) {
+      basePool[idx] = Object.assign({}, basePool[idx], myUser);
+    } else {
+      basePool.push(myUser);
+    }
+  }
+
+  return basePool;
+}
+
+// 이름으로 사용자 풀에서 찾음. 못 찾으면(예: 원본 seed 데이터의 이름) 최소 정보만 담은 임시 사용자로 대체
+function findUserByName(name) {
+  return getUserPool().find(function (u) {
+    return u.name === name;
+  }) || { id: name, name: name, dept: "", title: "" };
+}
+
+// 생성자/수정자 🔍 클릭 → 그 사용자의 상세 카드(원본의 "사용자" 화면과 동일 구조)를 플로팅 창으로 보여줌
+// 로그인한 내 계정의 추가 정보(직책/전화/FAX/Email/사진/Sign 등) — app_user 테이블엔 없는 항목이라 로컬에 보관
+const PROFILE_EXTRA_KEY = "lims-profile-extra";
+
+function getProfileExtra() {
+  const saved = localStorage.getItem(PROFILE_EXTRA_KEY);
+  return saved ? JSON.parse(saved) : { title: "", phone: "", fax: "", photoDataUrl: "", signDataUrl: "", modifier: "", modifiedDate: "", creator: "관리자", createdDate: "" };
+}
+
+function saveProfileExtra(extra) {
+  localStorage.setItem(PROFILE_EXTRA_KEY, JSON.stringify(extra));
+}
+
+// "정보수정"에서 쓰는, 로그인한 나 자신에 대한 완전한 사용자 정보
+function getMyProfileUser() {
+  const auth = getAuth();
+  const extra = getProfileExtra();
+  return Object.assign({ id: auth ? auth.id : "", name: auth ? auth.name : "", dept: auth ? auth.dept : "" }, extra);
+}
+
+// user: 보여줄 사용자 정보. options.editable=true면 수정/사진변경/Sign변경 가능 ("내 정보"용), 아니면 읽기 전용(생성자/수정자 조회용)
+function openUserDetailCard(user, options) {
+  options = options || {};
+  const editable = !!options.editable;
+
+  const existing = document.getElementById("floating-user-detail-card");
+  if (existing) {
+    existing.remove();
+  }
+
+  const toolbarButtonsHtml = editable
+    ? '<div class="detail-actions" id="user-detail-actions">' +
+      '<button id="user-photo-btn">📷 프로필사진변경</button>' +
+      '<button id="user-sign-btn">✍️ Sign변경</button>' +
+      '<button id="user-edit-btn">✏️ 수정</button>' +
+      '<button id="user-save-btn" style="display:none;">💾 저장</button>' +
+      '<button id="user-cancel-btn" style="display:none;">✖ 취소</button>' +
+      "</div>"
+    : "";
+
+  const detailMainHtml =
+    '<div class="info-block">' +
+    '<div class="info-block-header"><h3 class="section-title">일반정보</h3></div>' +
+    '<div class="user-detail-body">' +
+    '<table class="info-table">' +
+    '<tr><th><span class="required-mark">*</span>Login</th><td>' + user.id + "</td></tr>" +
+    '<tr><th>성명</th><td><input type="text" class="field-input" id="user-detail-name" value="' + (user.name || "") + '" disabled></td></tr>' +
+    '<tr><th>부서</th><td><input type="text" class="field-input" id="user-detail-dept" value="' + (user.dept || "") + '" disabled></td></tr>' +
+    '<tr><th>직책</th><td><input type="text" class="field-input" id="user-detail-title" value="' + (user.title || "") + '" disabled></td></tr>' +
+    '<tr><th>전화번호</th><td><input type="text" class="field-input" id="user-detail-phone" value="' + (user.phone || "") + '" disabled></td></tr>' +
+    '<tr><th>FAX</th><td><input type="text" class="field-input" id="user-detail-fax" value="' + (user.fax || "") + '" disabled></td></tr>' +
+    '<tr><th>Email</th><td><input type="text" class="field-input" id="user-detail-email" value="' + (user.email || "") + '" disabled></td></tr>' +
+    '<tr><th>Sign 이미지</th><td id="user-detail-sign-cell">' +
+    (user.signDataUrl
+      ? '<img src="' + user.signDataUrl + '" alt="Sign" class="user-sign-image">'
+      : '<span class="user-sign-placeholder" id="user-detail-sign-placeholder">Sign</span>') +
+    "</td></tr>" +
+    "</table>" +
+    '<div class="user-detail-photo" id="user-detail-photo-box">' +
+    (user.photoDataUrl ? '<img src="' + user.photoDataUrl + '" alt="프로필 사진" class="user-photo-image">' : "🖼️") +
+    "</div>" +
+    "</div>" +
+    "</div>" +
+    '<div class="info-block">' +
+    '<h3 class="section-title">시스템정보</h3>' +
+    '<div class="sys-info-row">' +
+    '<div class="sys-info-item"><span class="sys-label">수정자</span><div class="sys-input" id="user-detail-modifier">' + (user.modifier || "") + "</div></div>" +
+    '<div class="sys-info-item"><span class="sys-label">수정일자</span><div class="sys-input" id="user-detail-modified-date">' + (user.modifiedDate || "") + "</div></div>" +
+    "</div>" +
+    '<div class="sys-info-row">' +
+    '<div class="sys-info-item"><span class="sys-label">생성자</span><div class="sys-input">' + (user.creator || "") + "</div></div>" +
+    '<div class="sys-info-item"><span class="sys-label">생성일자</span><div class="sys-input">' + (user.createdDate || "") + "</div></div>" +
+    "</div>" +
+    "</div>";
+
+  const card = document.createElement("div");
+  card.className = "floating-card user-detail-card";
+  card.id = "floating-user-detail-card";
+  card.innerHTML =
+    '<div class="floating-card-titlebar">' +
+    "<span>" + (user.name || user.id) + "</span>" +
+    '<button class="floating-card-close-btn" title="닫기">✕</button>' +
+    "</div>" +
+    '<div class="ai-item-toolbar section-header"><span id="user-detail-panel-title">ℹ️ 상세정보</span>' + toolbarButtonsHtml + "</div>" +
+    '<div class="ai-item-layout">' +
+    '<aside class="ai-item-sidebar">' +
+    '<div class="sidebar-section-header"><h4>Tree 정보</h4>' +
+    '<div class="sidebar-section-actions">' +
+    '<div class="dropdown-wrap" id="user-tree-filter-wrap">' +
+    '<div class="split-btn">' +
+    '<button class="tree-icon-btn" title="필터">🔽</button>' +
+    '<button class="tree-icon-btn caret-btn">▾</button>' +
+    "</div>" +
+    '<div class="dropdown-menu">' +
+    '<div class="dropdown-item">✔ 이름</div>' +
+    '<div class="dropdown-item">✔ ID</div>' +
+    '<div class="dropdown-item">✔ 부서</div>' +
+    "</div>" +
+    "</div>" +
+    '<div class="dropdown-wrap" id="user-tree-sort-wrap">' +
+    '<div class="split-btn">' +
+    '<button class="tree-icon-btn" id="user-tree-sort-icon-btn" title="정렬">🔼</button>' +
+    '<button class="tree-icon-btn caret-btn">▾</button>' +
+    "</div>" +
+    '<div class="dropdown-menu" id="user-tree-sort-menu">' +
+    '<div class="dropdown-item">이름(A-Z)</div>' +
+    '<div class="dropdown-item">이름(Z-A)</div>' +
+    '<div class="dropdown-item">최신순</div>' +
+    '<div class="dropdown-item">✔ 오래된순</div>' +
+    "</div>" +
+    "</div>" +
+    '<button class="tree-icon-btn" id="user-tree-refresh-btn" title="새로고침">🔄</button>' +
+    "</div></div>" +
+    '<div class="tree-item-list"><div class="tree-item">👤 ' + (user.name || user.id) + "</div></div>" +
+    '<div class="sidebar-section-header"><h4>연결정보</h4></div>' +
+    '<ul class="link-list" id="user-detail-link-list"><li class="link-active" data-tab="detail">상세정보</li><li data-tab="settings">화면설정</li></ul>' +
+    "</aside>" +
+    '<main class="ai-item-main" id="user-detail-main">' + detailMainHtml + "</main>" +
+    "</div>";
+
+  document.body.appendChild(card);
+
+  card.querySelector(".floating-card-close-btn").addEventListener("click", function () {
+    card.remove();
+  });
+
+  // Tree 정보의 필터/정렬 드롭다운 — 카드가 열릴 때마다 새로 만들어지는 요소라
+  // 전역 dropdownWraps(페이지 로드 시 한 번만 잡힘)에는 안 잡혀서 여기서 따로 열고 닫는 로직을 붙임
+  const userTreeDropdownWraps = card.querySelectorAll(".dropdown-wrap");
+
+  userTreeDropdownWraps.forEach(function (wrap) {
+    const caretBtn = wrap.querySelector(".caret-btn") || wrap.querySelector("button");
+    caretBtn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      const isOpen = wrap.classList.contains("open");
+      userTreeDropdownWraps.forEach(function (w) {
+        w.classList.remove("open");
+      });
+      if (!isOpen) {
+        wrap.classList.add("open");
+      }
+    });
+  });
+
+  document.addEventListener("click", function () {
+    userTreeDropdownWraps.forEach(function (w) {
+      w.classList.remove("open");
+    });
+  });
+
+  // 필터 항목: 누를 때마다 체크 온오프
+  card.querySelectorAll("#user-tree-filter-wrap .dropdown-item").forEach(function (item) {
+    item.addEventListener("click", function (event) {
+      event.stopPropagation();
+      const isChecked = item.textContent.startsWith("✔ ");
+      const label = item.textContent.replace("✔ ", "");
+      item.textContent = isChecked ? label : "✔ " + label;
+    });
+  });
+
+  // 정렬 항목: 아이콘을 눌러도, 목록에서 골라도 그 항목으로 체크가 옮겨감
+  const userTreeSortIconBtn = card.querySelector("#user-tree-sort-icon-btn");
+  const userTreeSortMenuItems = card.querySelectorAll("#user-tree-sort-menu .dropdown-item");
+
+  function selectUserTreeSortOption(label) {
+    userTreeSortMenuItems.forEach(function (item) {
+      const itemLabel = item.textContent.replace("✔ ", "").trim();
+      item.textContent = itemLabel === label ? "✔ " + itemLabel : itemLabel;
+    });
+    if (userTreeSortIconBtn) {
+      if (label === "최신순") {
+        userTreeSortIconBtn.textContent = "🔽";
+      } else if (label === "오래된순") {
+        userTreeSortIconBtn.textContent = "🔼";
+      }
+    }
+  }
+
+  if (userTreeSortIconBtn) {
+    userTreeSortIconBtn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      const isAscending = userTreeSortIconBtn.textContent === "🔼";
+      selectUserTreeSortOption(isAscending ? "최신순" : "오래된순");
+    });
+  }
+
+  userTreeSortMenuItems.forEach(function (item) {
+    item.addEventListener("click", function (event) {
+      event.stopPropagation();
+      selectUserTreeSortOption(item.textContent.replace("✔ ", "").trim());
+    });
+  });
+
+  const userTreeRefreshBtn = card.querySelector("#user-tree-refresh-btn");
+  if (userTreeRefreshBtn) {
+    userTreeRefreshBtn.addEventListener("click", function () {
+      const treeItem = card.querySelector(".tree-item-list .tree-item");
+      if (treeItem) {
+        treeItem.textContent = "👤 " + (user.name || user.id);
+      }
+    });
+  }
+
+  function renderScreenSettingsPanel() {
+    const layout = getMenuLayout();
+    const main = document.getElementById("user-detail-main");
+    main.innerHTML =
+      '<div class="info-block">' +
+      '<div class="info-block-header"><h3 class="section-title">화면설정</h3></div>' +
+      '<table class="info-table">' +
+      "<tr><th>메뉴 위치</th><td>" +
+      '<label class="radio-inline"><input type="radio" name="menu-layout-radio" value="top"' + (layout === "top" ? " checked" : "") + "> 상단메뉴</label>" +
+      '<label class="radio-inline"><input type="radio" name="menu-layout-radio" value="side"' + (layout === "side" ? " checked" : "") + "> 왼쪽메뉴</label>" +
+      "</td></tr>" +
+      "</table>" +
+      '<div class="screen-settings-actions"><button id="menu-layout-apply-btn">반영</button></div>' +
+      "</div>";
+
+    document.getElementById("menu-layout-apply-btn").addEventListener("click", function () {
+      const chosen = main.querySelector('input[name="menu-layout-radio"]:checked');
+      applyMenuLayout(chosen ? chosen.value : "top");
+    });
+  }
+
+  card.querySelectorAll("#user-detail-link-list li").forEach(function (li) {
+    li.addEventListener("click", function () {
+      card.querySelectorAll("#user-detail-link-list li").forEach(function (x) {
+        x.classList.remove("link-active");
+      });
+      li.classList.add("link-active");
+
+      const panelTitle = document.getElementById("user-detail-panel-title");
+      const actions = document.getElementById("user-detail-actions");
+
+      if (li.dataset.tab === "settings") {
+        if (panelTitle) panelTitle.textContent = "⚙️ 화면설정";
+        if (actions) actions.style.display = "none";
+        renderScreenSettingsPanel();
+      } else {
+        if (panelTitle) panelTitle.textContent = "ℹ️ 상세정보";
+        if (actions) actions.style.display = "";
+        document.getElementById("user-detail-main").innerHTML = detailMainHtml;
+      }
+    });
+  });
+
+  if (!editable) {
+    return;
+  }
+
+  const FIELD_IDS = ["user-detail-name", "user-detail-dept", "user-detail-title", "user-detail-phone", "user-detail-fax", "user-detail-email"];
+  const editBtn = document.getElementById("user-edit-btn");
+  const saveBtn = document.getElementById("user-save-btn");
+  const cancelBtn = document.getElementById("user-cancel-btn");
+  let fieldSnapshot = null;
+
+  function setEditMode(on) {
+    FIELD_IDS.forEach(function (id) {
+      document.getElementById(id).disabled = !on;
+    });
+    editBtn.style.display = on ? "none" : "";
+    saveBtn.style.display = on ? "" : "none";
+    cancelBtn.style.display = on ? "" : "none";
+  }
+
+  editBtn.addEventListener("click", function () {
+    fieldSnapshot = {};
+    FIELD_IDS.forEach(function (id) {
+      fieldSnapshot[id] = document.getElementById(id).value;
+    });
+    setEditMode(true);
+  });
+
+  cancelBtn.addEventListener("click", function () {
+    if (fieldSnapshot) {
+      FIELD_IDS.forEach(function (id) {
+        document.getElementById(id).value = fieldSnapshot[id];
+      });
+    }
+    setEditMode(false);
+  });
+
+  saveBtn.addEventListener("click", function () {
+    const newName = document.getElementById("user-detail-name").value.trim();
+    const newDept = document.getElementById("user-detail-dept").value.trim();
+
+    if (!newName || !newDept) {
+      alert("성명과 부서를 입력해주세요.");
+      return;
+    }
+
+    setEditMode(false);
+
+    saveProfile({ name: newName, dept: newDept, email: document.getElementById("user-detail-email").value.trim() });
+
+    const auth = getAuth();
+    if (auth) {
+      fetch(API_BASE + "/auth/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: auth.id, name: newName, dept: newDept })
+      }).catch(function (err) {
+        console.error("계정 정보 서버 저장 실패 (화면에는 반영됨):", err);
+      });
+      auth.name = newName;
+      auth.dept = newDept;
+      localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+    }
+
+    const extra = getProfileExtra();
+    extra.title = document.getElementById("user-detail-title").value.trim();
+    extra.phone = document.getElementById("user-detail-phone").value.trim();
+    extra.fax = document.getElementById("user-detail-fax").value.trim();
+    extra.email = document.getElementById("user-detail-email").value.trim();
+    extra.modifier = newName;
+    extra.modifiedDate = todayAsDisplayDate().replaceAll(".", "-");
+    saveProfileExtra(extra);
+
+    document.querySelector(".floating-card-titlebar span").textContent = newName;
+    document.getElementById("user-detail-modifier").textContent = extra.modifier;
+    document.getElementById("user-detail-modified-date").textContent = extra.modifiedDate;
+  });
+
+  document.getElementById("user-photo-btn").addEventListener("click", function () {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.addEventListener("change", function () {
+      const file = input.files[0];
+      if (!file) {
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        const extra = getProfileExtra();
+        extra.photoDataUrl = reader.result;
+        saveProfileExtra(extra);
+        document.getElementById("user-detail-photo-box").innerHTML = '<img src="' + reader.result + '" alt="프로필 사진" class="user-photo-image">';
+      };
+      reader.readAsDataURL(file);
+    });
+    input.click();
+  });
+
+  document.getElementById("user-sign-btn").addEventListener("click", function () {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.addEventListener("change", function () {
+      const file = input.files[0];
+      if (!file) {
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        const extra = getProfileExtra();
+        extra.signDataUrl = reader.result;
+        saveProfileExtra(extra);
+        document.getElementById("user-detail-sign-cell").innerHTML = '<img src="' + reader.result + '" alt="Sign" class="user-sign-image">';
+      };
+      reader.readAsDataURL(file);
+    });
+    input.click();
+  });
+}
+
+// detail.html 시스템정보의 생성자/수정자 🔍 아이콘 연결
+const creatorSearchBtn = document.getElementById("detail-creator-search-btn");
+if (creatorSearchBtn) {
+  creatorSearchBtn.addEventListener("click", function () {
+    const name = document.getElementById("detail-creator-name").textContent.replace("🔍", "").trim();
+    openUserDetailCard(findUserByName(name));
+  });
+}
+
+const modifierSearchBtn = document.getElementById("detail-modifier-search-btn");
+if (modifierSearchBtn) {
+  modifierSearchBtn.addEventListener("click", function () {
+    const name = document.getElementById("detail-modifier-name").textContent.replace("🔍", "").trim();
+    openUserDetailCard(findUserByName(name));
+  });
 }
 
 function openUserPickerModal(onSelect) {
@@ -990,6 +1396,18 @@ const PROFILE_KEY = "lims-profile";
 const PROFILE_SEED = { name: "품질팀", dept: "품질팀", email: "" };
 
 function getProfile() {
+  // 로그인 정보(AUTH_KEY)가 있으면 그게 항상 진실의 원천 — 이름/부서 캐시(lims-profile)가
+  // 로그인 정보와 어긋나서 "생성자가 부서로 나오는" 것 같은 불일치가 생기는 걸 막기 위함
+  const authRaw = localStorage.getItem(AUTH_KEY);
+  if (authRaw) {
+    const auth = JSON.parse(authRaw);
+    if (auth && auth.name) {
+      const savedEmail = localStorage.getItem(PROFILE_KEY);
+      const email = savedEmail ? JSON.parse(savedEmail).email : "";
+      return { name: auth.name, dept: auth.dept, email: email || "" };
+    }
+  }
+
   const saved = localStorage.getItem(PROFILE_KEY);
   if (saved) {
     return JSON.parse(saved);
@@ -1020,47 +1438,7 @@ document.querySelectorAll(".user-dropdown-menu .dropdown-link").forEach(function
   if (label.includes("정보수정")) {
     link.addEventListener("click", function (event) {
       event.preventDefault();
-      const profile = getProfile();
-      openModal(
-        "정보수정",
-        '<div class="modal-field"><label>이름</label><input type="text" id="profile-name-input" value="' + profile.name + '"></div>' +
-        '<div class="modal-field"><label>부서</label><input type="text" id="profile-dept-input" value="' + profile.dept + '"></div>' +
-        '<div class="modal-field"><label>이메일</label><input type="text" id="profile-email-input" placeholder="이메일 입력" value="' + profile.email + '"></div>' +
-        '<div class="modal-actions"><button id="modal-save-btn">저장</button><button id="modal-cancel-btn">취소</button></div>'
-      );
-      document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
-      document.getElementById("modal-save-btn").addEventListener("click", function () {
-        const newName = document.getElementById("profile-name-input").value.trim();
-        const newDept = document.getElementById("profile-dept-input").value.trim();
-        const newEmail = document.getElementById("profile-email-input").value.trim();
-
-        if (!newName || !newDept) {
-          alert("이름과 부서를 입력해주세요.");
-          return;
-        }
-
-        saveProfile({ name: newName, dept: newDept, email: newEmail });
-
-        const auth = getAuth();
-        if (auth) {
-          fetch(API_BASE + "/auth/profile", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: auth.id, name: newName, dept: newDept })
-          })
-            .then(function () {
-              auth.name = newName;
-              auth.dept = newDept;
-              localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
-            })
-            .catch(function (err) {
-              console.error("계정 정보 서버 저장 실패 (화면에는 반영됨):", err);
-            });
-        }
-
-        alert("정보가 저장되었습니다.");
-        closeModal();
-      });
+      openUserDetailCard(getMyProfileUser(), { editable: true });
     });
   } else if (label.includes("비밀번호 변경")) {
     link.addEventListener("click", function (event) {
@@ -1568,6 +1946,152 @@ const NAV_MEGA_CONTENT = {
   ]
 };
 
+// 화면설정(메뉴 위치: 상단메뉴/왼쪽메뉴) — "내 정보" 카드의 화면설정 탭에서 반영
+const MENU_LAYOUT_KEY = "lims-menu-layout";
+
+function getMenuLayout() {
+  return localStorage.getItem(MENU_LAYOUT_KEY) || "top";
+}
+
+// 헤더(header)를 body 바로 아래 최상단으로 끌어올려서 항상 전체 너비를 유지하게 하고,
+// 그 아래 나머지 콘텐츠는 전부 하나의 래퍼로 묶음 (왼쪽메뉴 모드일 때 그 래퍼만 사이드바만큼 밀기 위함)
+// detail.html처럼 header가 .detail-page/.sticky-top 안에 중첩된 페이지도 동일하게 처리됨
+// 플로팅 카드/모달은 body의 직속 자식으로 별도 추가되므로 이 래퍼에 안 묶여서 영향받지 않음
+function ensurePageContentWrapper() {
+  const header = document.querySelector("header");
+  if (!header) {
+    return null;
+  }
+
+  const existing = document.querySelector(".page-content");
+  if (existing) {
+    return existing;
+  }
+
+  if (document.body.firstChild !== header) {
+    document.body.insertBefore(header, document.body.firstChild);
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "page-content";
+
+  const inner = document.createElement("div");
+  inner.className = "page-content-inner";
+
+  const nodesToMove = [];
+  Array.from(document.body.childNodes).forEach(function (node) {
+    const isHeaderNode = node === header;
+    const isScript = node.nodeType === 1 && node.tagName === "SCRIPT";
+    if (!isHeaderNode && !isScript) {
+      nodesToMove.push(node);
+    }
+  });
+
+  if (nodesToMove.length === 0) {
+    return null;
+  }
+
+  document.body.insertBefore(wrapper, nodesToMove[0]);
+  nodesToMove.forEach(function (n) {
+    inner.appendChild(n);
+  });
+  wrapper.appendChild(inner);
+
+  return wrapper;
+}
+
+// 상단 nav와 같은 메뉴 데이터(NAV_MEGA_CONTENT)로 왼쪽 사이드바를 구성
+function buildAppSidebar() {
+  if (document.getElementById("app-sidebar")) {
+    return;
+  }
+
+  const wrapper = ensurePageContentWrapper();
+  if (!wrapper) {
+    return;
+  }
+
+  const sidebar = document.createElement("aside");
+  sidebar.className = "app-sidebar";
+  sidebar.id = "app-sidebar";
+
+  const homeLink = document.createElement("a");
+  homeLink.href = "index.html";
+  homeLink.className = "sidebar-home-link";
+  homeLink.title = "Home";
+  homeLink.textContent = "🏠";
+  sidebar.appendChild(homeLink);
+
+  const navList = document.createElement("div");
+  navList.className = "sidebar-nav-list";
+
+  Object.keys(NAV_MEGA_CONTENT).forEach(function (label) {
+    const group = document.createElement("div");
+    group.className = "sidebar-nav-group";
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "sidebar-nav-toggle";
+    toggle.innerHTML = '<span class="sidebar-nav-label">' + label + '</span><span class="chevron">▾</span>';
+
+    const body = document.createElement("div");
+    body.className = "sidebar-nav-body";
+
+    NAV_MEGA_CONTENT[label].forEach(function (column) {
+      column.forEach(function (section) {
+        const heading = document.createElement("h5");
+        heading.textContent = (section.icon ? section.icon + " " : "") + section.heading;
+        body.appendChild(heading);
+
+        section.links.forEach(function (linkText) {
+          const a = document.createElement("a");
+          a.href = "#";
+          a.textContent = linkText;
+          body.appendChild(a);
+        });
+      });
+    });
+
+    toggle.addEventListener("click", function () {
+      group.classList.toggle("open");
+    });
+
+    group.appendChild(toggle);
+    group.appendChild(body);
+    navList.appendChild(group);
+  });
+
+  sidebar.appendChild(navList);
+
+  const collapseBtn = document.createElement("button");
+  collapseBtn.type = "button";
+  collapseBtn.className = "sidebar-collapse-btn";
+  collapseBtn.title = "접기/펼치기";
+  collapseBtn.textContent = "«";
+  collapseBtn.addEventListener("click", function () {
+    sidebar.classList.toggle("collapsed");
+    collapseBtn.textContent = sidebar.classList.contains("collapsed") ? "»" : "«";
+  });
+  sidebar.appendChild(collapseBtn);
+
+  wrapper.insertBefore(sidebar, wrapper.firstChild);
+}
+
+function applyMenuLayout(layout) {
+  localStorage.setItem(MENU_LAYOUT_KEY, layout);
+  // side-menu-layout 클래스를 먼저 붙여야 헤더의 세로 패딩 보정 CSS가 적용된 상태로
+  // --app-header-h(헤더 실제 높이)를 측정할 수 있음 (순서 바뀌면 높이가 작게 측정돼서 밀림)
+  document.body.classList.toggle("side-menu-layout", layout === "side");
+  if (layout === "side") {
+    ensurePageContentWrapper();
+    buildAppSidebar();
+  }
+}
+
+if (document.querySelector("header")) {
+  applyMenuLayout(getMenuLayout());
+}
+
 const navMegaMenu = document.getElementById("nav-mega-menu");
 const navLinks = document.querySelectorAll("nav a");
 
@@ -1817,6 +2341,10 @@ if (editToggleBtn && infoTable) {
           record.tabLabel = record.title;
 
           record.supplier = supplierField ? supplierField.textContent.trim() : record.supplier;
+
+          // 실제로 수정했으니 수정자를 지금 로그인한 사용자로 갱신 (데이터 + 화면 둘 다)
+          record.modifier = getProfile().name;
+          setSysNameField(document.getElementById("detail-modifier-name"), record.modifier);
 
           if (newId && newId !== record.id) {
             record.id = newId;
@@ -2321,7 +2849,11 @@ function openAiItemCard(ailId, sourceRow) {
       status: sourceRow.children[3] ? sourceRow.children[3].textContent.trim() : "",
       content: sourceRow.children[4] ? sourceRow.children[4].textContent.trim() : "",
       dept: sourceRow.children[5] ? sourceRow.children[5].textContent.trim() : "",
-      due: sourceRow.children[6] ? sourceRow.children[6].textContent.trim() : ""
+      due: sourceRow.children[6] ? sourceRow.children[6].textContent.trim() : "",
+      creator: sourceRow.dataset.creator || "",
+      createdAt: sourceRow.dataset.createdAt || "",
+      modifier: sourceRow.dataset.modifier || "",
+      modifiedAt: sourceRow.dataset.modifiedAt || ""
     };
   }
 
@@ -2385,8 +2917,8 @@ function openAiItemCard(ailId, sourceRow) {
       '<div class="info-block">' +
       '<h3 class="section-title">시스템정보</h3>' +
       '<div class="sys-info-row">' +
-      '<div class="sys-info-item"><span class="sys-label">생성자</span><div class="sys-input">박신영<span class="sys-search-icon">🔍</span></div></div>' +
-      '<div class="sys-info-item"><span class="sys-label">수정자</span><div class="sys-input"><span class="sys-search-icon">🔍</span></div></div>' +
+      '<div class="sys-info-item"><span class="sys-label">생성자</span><div class="sys-input">' + values.creator + '<span class="sys-search-icon">🔍</span></div></div>' +
+      '<div class="sys-info-item"><span class="sys-label">수정자</span><div class="sys-input">' + values.modifier + '<span class="sys-search-icon">🔍</span></div></div>' +
       "</div>" +
       "</div>"
     );
@@ -2639,9 +3171,14 @@ function openAiItemCard(ailId, sourceRow) {
     setCellText(sourceRow.children[5], dept);
     setCellText(sourceRow.children[6], due);
 
+    // 실제로 수정했으니 수정자/수정일을 지금 로그인한 사용자로 기록
+    sourceRow.dataset.modifier = getProfile().name;
+    sourceRow.dataset.modifiedAt = todayAsDisplayDate();
+
     document.getElementById("ai-item-card-title").textContent = content;
     document.getElementById("ai-item-tree-item").textContent = content + " " + ailId + " A";
 
+    showView("detail"); // 시스템정보(수정자 등)가 바로 반영되도록 다시 그림
     refreshAiViewsAfterChange();
   });
 
@@ -2684,6 +3221,10 @@ function addAiRow(values) {
     '<td><span class="ai-cell-display">' + (values.content || "") + "</span></td>" +
     '<td><span class="ai-cell-display">' + (values.dept || "") + "</span></td>" +
     '<td><span class="ai-cell-display" data-cell-type="date">' + (values.due || "") + "</span></td>";
+
+  // 이 행을 실제로 누가/언제 만들었는지 기록 (A/I 항목은 서버에 안 남으니 행 자체에 보관)
+  row.dataset.creator = getProfile().name;
+  row.dataset.createdAt = todayAsDisplayDate();
 
   aiTableBody.appendChild(row);
   wireAiDeleteButton(row);
@@ -2984,6 +3525,18 @@ function renderTabBar() {
 const detailUrlParams = new URLSearchParams(window.location.search);
 const detailRecordId = detailUrlParams.get("id");
 
+// 생성자/수정자 칸(이름 + 🔍 아이콘)에서 이름 텍스트만 바꾸고 아이콘은 그대로 유지
+function setSysNameField(containerEl, name) {
+  if (!containerEl) {
+    return;
+  }
+  const icon = containerEl.querySelector(".sys-search-icon");
+  containerEl.textContent = name || "";
+  if (icon) {
+    containerEl.appendChild(icon);
+  }
+}
+
 function renderDetailFields() {
   if (!detailRecordId || typeof getAudits !== "function") {
     return;
@@ -3031,6 +3584,9 @@ function renderDetailFields() {
     if (treeItem) {
       treeItem.textContent = record.title + " " + record.id;
     }
+
+    setSysNameField(document.getElementById("detail-creator-name"), record.creator);
+    setSysNameField(document.getElementById("detail-modifier-name"), record.modifier);
 
     document.body.dataset.tabLabel = record.tabLabel || record.title;
     currentDetailRecordId = record.id;
@@ -3166,6 +3722,7 @@ function toBackendAudit(item) {
     resultSummary: item.resultSummary,
     aiCount: item.aiCount,
     creator: item.creator,
+    modifier: item.modifier,
     vendorId: item.vendorId || getVendor().id
   };
 }
@@ -3564,7 +4121,7 @@ if (addSaveBtn) {
       result: resultInput ? resultInput.value.trim() : "",
       resultSummary: resultSummaryInput ? resultSummaryInput.value.trim() : "",
       aiCount: "0/0",
-      creator: "품질팀",
+      creator: getProfile().name,
       createdAt: dateText,
       modifier: "",
       modifiedAt: "",
