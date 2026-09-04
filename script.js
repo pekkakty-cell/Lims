@@ -120,8 +120,9 @@ const VENDOR_SEED = { id: "VND-0000057", customerName: "Nikka Finetech" };
 const VENDOR_LIST_KEY = "lims-vendor-list";
 
 // vendor-detail.html이 지금 어떤 공급사(?id=값)를 보여주고 있는지. 없으면 기본 공급사를 보여줌
+// ID 수정(rename) 저장 후에는 이 값 자체를 새 ID로 갱신해서 계속 같은 레코드를 가리키게 함
 const vendorDetailParams = new URLSearchParams(window.location.search);
-const vendorDetailId = vendorDetailParams.get("id");
+let vendorDetailId = vendorDetailParams.get("id");
 
 function getVendor() {
   const saved = localStorage.getItem(VENDOR_KEY);
@@ -189,10 +190,13 @@ function getCurrentVendorRecord() {
 }
 
 // 공급사 하나를 저장 — 목록 캐시, (기본 공급사면) 기본 공급사 캐시, 서버까지 모두 갱신
-function saveVendorRecord(vendor) {
+// oldId를 넘기면 "ID 자체를 수정(rename)"하는 저장으로 처리 — 서버에는 oldId로 찾아서 새 id로 바꿔달라고 요청
+function saveVendorRecord(vendor, oldId) {
+  const lookupId = oldId || vendor.id;
+
   const list = getVendorList();
   const idx = list.findIndex(function (v) {
-    return v.id === vendor.id;
+    return v.id === lookupId;
   });
   if (idx >= 0) {
     list[idx] = vendor;
@@ -201,11 +205,11 @@ function saveVendorRecord(vendor) {
   }
   cacheVendorList(list);
 
-  if (vendor.id === getVendor().id) {
+  if (lookupId === getVendor().id) {
     cacheVendor(vendor);
   }
 
-  fetch(API_BASE + "/vendors/" + encodeURIComponent(vendor.id), {
+  fetch(API_BASE + "/vendors/" + encodeURIComponent(lookupId), {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(vendor)
@@ -2675,7 +2679,19 @@ if (editToggleBtn && infoTable) {
           const resultField = document.getElementById("detail-result-field");
           const resultSummaryField = document.getElementById("detail-resultsummary-field");
 
+          const oldId = record.id;
           const newId = idField ? idField.textContent.trim() : record.id;
+
+          if (!newId) {
+            alert("ID를 입력해주세요.");
+            return;
+          }
+
+          // ID를 다른 값으로 바꾸는 경우, 이미 쓰이고 있는 ID인지 확인 (기본키라 중복되면 저장이 실패함)
+          if (newId !== oldId && items.some(function (item) { return item.id === newId; })) {
+            alert("이미 존재하는 ID입니다.");
+            return;
+          }
 
           record.status = statusField ? statusField.textContent.trim() : record.status;
           record.title = titleField ? titleField.textContent.trim() : record.title;
@@ -2691,16 +2707,17 @@ if (editToggleBtn && infoTable) {
           record.modifier = getProfile().name;
           setSysNameField(document.getElementById("detail-modifier-name"), record.modifier);
 
-          if (newId && newId !== record.id) {
+          if (newId !== oldId) {
             record.id = newId;
             record.detailUrl = "detail.html?id=" + encodeURIComponent(newId);
             currentDetailRecordId = newId;
+            window.history.replaceState(null, "", record.detailUrl);
           }
 
           saveAudits(items);
           document.body.dataset.tabLabel = record.tabLabel;
 
-          fetch(API_BASE + "/audits/" + encodeURIComponent(record.id), {
+          fetch(API_BASE + "/audits/" + encodeURIComponent(oldId), {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(toBackendAudit(record))
@@ -2713,26 +2730,51 @@ if (editToggleBtn && infoTable) {
       // 지금 보고 있는 게 공급사 상세면, 고친 값을 저장 (공급사는 하나뿐이라 모든 Audit이 이 값을 공유해서 봄)
       if (document.body.dataset.pageType === "vendor" && typeof getVendor === "function") {
         const vendor = getCurrentVendorRecord();
+        const oldId = vendor.id;
         const idField = document.getElementById("vendor-id-field");
         const nameField = document.getElementById("vendor-name-field");
 
         const newId = idField ? idField.textContent.trim() : vendor.id;
         const newName = nameField ? nameField.textContent.trim() : vendor.customerName;
 
+        if (!newId) {
+          alert("ID를 입력해주세요.");
+          return;
+        }
+
+        // ID를 다른 값으로 바꾸는 경우, 이미 쓰이고 있는 ID인지 확인 (기본키라 중복되면 저장이 실패함)
+        if (newId !== oldId) {
+          const isDuplicate = getVendorList().some(function (v) {
+            return v.id === newId;
+          });
+          if (isDuplicate) {
+            alert("이미 존재하는 ID입니다.");
+            return;
+          }
+        }
+
         vendor.id = newId;
         vendor.customerName = newName;
-        saveVendorRecord(vendor);
+        saveVendorRecord(vendor, oldId);
 
         document.body.dataset.tabLabel = newName;
 
-        if (typeof getOpenTabs === "function") {
+        const oldUrl = typeof getCurrentUrl === "function" ? getCurrentUrl() : null;
+        const newUrl = "vendor-detail.html?id=" + encodeURIComponent(newId);
+
+        if (newId !== oldId) {
+          vendorDetailId = newId;
+          window.history.replaceState(null, "", newUrl);
+        }
+
+        if (typeof getOpenTabs === "function" && oldUrl) {
           const tabs = getOpenTabs();
-          const currentUrl = getCurrentUrl();
           const thisTab = tabs.find(function (tab) {
-            return tab.url === currentUrl;
+            return tab.url === oldUrl;
           });
           if (thisTab) {
             thisTab.label = newName;
+            thisTab.url = newUrl;
             saveOpenTabs(tabs);
             renderTabBar();
           }
