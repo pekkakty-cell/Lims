@@ -223,6 +223,8 @@ function renderVendorFields() {
   const vendorIdField = document.getElementById("vendor-id-field");
   const vendorNameField = document.getElementById("vendor-name-field");
   const vendorTreeItem = document.getElementById("vendor-tree-item");
+  const vendorCreatorName = document.getElementById("vendor-creator-name");
+  const vendorModifierName = document.getElementById("vendor-modifier-name");
 
   if (vendorIdField) {
     vendorIdField.textContent = vendor.id;
@@ -233,7 +235,30 @@ function renderVendorFields() {
   if (vendorTreeItem) {
     vendorTreeItem.textContent = vendor.customerName;
   }
+  if (vendorCreatorName) {
+    vendorCreatorName.textContent = vendor.creator || "";
+  }
+  if (vendorModifierName) {
+    vendorModifierName.textContent = vendor.modifier || "";
+  }
   document.body.dataset.tabLabel = vendor.customerName;
+}
+
+// vendor-detail.html 시스템정보의 생성자/수정자 🔍 아이콘 연결
+const vendorCreatorSearchBtn = document.getElementById("vendor-creator-search-btn");
+if (vendorCreatorSearchBtn) {
+  vendorCreatorSearchBtn.addEventListener("click", function () {
+    const name = document.getElementById("vendor-creator-name").textContent.trim();
+    openUserDetailCard(findUserByName(name));
+  });
+}
+
+const vendorModifierSearchBtn = document.getElementById("vendor-modifier-search-btn");
+if (vendorModifierSearchBtn) {
+  vendorModifierSearchBtn.addEventListener("click", function () {
+    const name = document.getElementById("vendor-modifier-name").textContent.trim();
+    openUserDetailCard(findUserByName(name));
+  });
 }
 
 renderVendorFields();
@@ -260,6 +285,319 @@ if (document.body.dataset.pageType === "vendor") {
       renderVendorFields();
     })
     .catch(function () {});
+}
+
+// "나라" 필드 전체 국가 목록 (공급사 일반정보 수정, 상위/하위구성 생성 모달에서 공용으로 씀)
+const COUNTRY_LIST = [
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia",
+  "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Belarus", "Belgium", "Belize",
+  "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+  "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Chad", "Chile",
+  "China", "Colombia", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark",
+  "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Estonia", "Ethiopia", "Fiji",
+  "Finland", "France", "Georgia", "Germany", "Ghana", "Greece", "Guatemala", "Honduras",
+  "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel",
+  "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kuwait", "Kyrgyzstan", "Laos",
+  "Latvia", "Lebanon", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Macau", "Malaysia",
+  "Maldives", "Malta", "Mexico", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco",
+  "Myanmar", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Nigeria", "North Korea",
+  "North Macedonia", "Norway", "Oman", "Pakistan", "Panama", "Paraguay", "Peru", "Philippines",
+  "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saudi Arabia", "Senegal",
+  "Serbia", "Singapore", "Slovakia", "Slovenia", "South Africa", "South Korea", "Spain",
+  "Sri Lanka", "Sudan", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania",
+  "Thailand", "Tunisia", "Turkey", "Turkmenistan", "Uganda", "Ukraine",
+  "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan",
+  "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+];
+
+// vendor-detail.html 연결정보(프로젝트/일정/상위구성/하위구성) — 원본에서도 연결된 데이터가 없어서
+// 항상 "No items to display"로 뜨는 목록이라, 여기서도 실제 데이터 없이 목록/버튼 UI만 동작하게 구현
+if (document.body.dataset.pageType === "vendor") {
+  const vendorToolbarTitle = document.getElementById("vendor-toolbar-title");
+  const vendorToolbarActions = document.getElementById("vendor-toolbar-actions");
+  const vendorMainContent = document.getElementById("vendor-main-content");
+
+  // 처음(상세정보) 상태의 툴바/본문 HTML을 기억해뒀다가, 다시 상세정보 탭으로 돌아올 때 그대로 복원
+  const vendorDetailToolbarHtml = vendorToolbarActions ? vendorToolbarActions.innerHTML : "";
+  const vendorDetailMainHtml = vendorMainContent ? vendorMainContent.innerHTML : "";
+
+  // 상위구성/하위구성에 연결된 다른 공급사들 — 페이지가 떠있는 동안만 유지됨(새로고침하면 초기화)
+  let vendorParentLinks = [];
+  let vendorChildLinks = [];
+
+  function getVendorLinksFor(kind) {
+    return kind === "parent" ? vendorParentLinks : vendorChildLinks;
+  }
+
+  // 항목이 없어도 원본처럼 빈 칸(줄)이 죽 그어진 빈 그리드처럼 보이게, 빈 행을 여러 개 채워넣음
+  function buildEmptyGridRowsHtml(colCount, rowCount) {
+    const emptyRow = "<tr class=\"empty-grid-row\">" + '<td>&nbsp;</td>'.repeat(colCount) + "</tr>";
+    return emptyRow.repeat(rowCount || 14);
+  }
+
+  function renderEmptyTable(headers) {
+    return (
+      '<div class="ai-item-table-wrapper">' +
+      '<table class="ai-table"><thead><tr>' +
+      headers.map(function (h) { return "<th>" + h + "</th>"; }).join("") +
+      "</tr></thead><tbody id=\"vendor-tab-table-body\">" +
+      buildEmptyGridRowsHtml(headers.length) +
+      "</tbody></table>" +
+      "</div>" +
+      '<div class="page-total" id="vendor-tab-empty-note">No items to display</div>'
+    );
+  }
+
+  function renderVendorProjectTab() {
+    vendorToolbarTitle.textContent = "ℹ️ 프로젝트";
+    vendorToolbarActions.innerHTML = '<button class="page-refresh-btn" id="vendor-tab-refresh-btn">🔄 새로고침</button>';
+    vendorMainContent.innerHTML = renderEmptyTable(
+      ["C", "S", "Action", "프로젝트명", "고객사", "모델", "프로젝트관리자", "수정자", "수정일자", "생성자", "생성일자"]
+    );
+    document.getElementById("vendor-tab-refresh-btn").addEventListener("click", renderVendorProjectTab);
+  }
+
+  function renderVendorScheduleTab() {
+    vendorToolbarTitle.textContent = "ℹ️ 일정";
+    vendorToolbarActions.innerHTML =
+      '<button id="vendor-schedule-search-add-btn">🔍➕ 검색추가</button>' +
+      '<button id="vendor-schedule-unlink-btn">🔗🗑️ 연결삭제</button>';
+    vendorMainContent.innerHTML = renderEmptyTable(
+      ["N", "C", "S", "Action", "ID", "개정", "제목", "시작날짜(계획)", "종료날짜(계획)", "작성자", "생성일"]
+    );
+
+    document.getElementById("vendor-schedule-search-add-btn").addEventListener("click", openPmsSearchModal);
+    document.getElementById("vendor-schedule-unlink-btn").addEventListener("click", function () {
+      alert("선택된 일정이 없습니다.");
+    });
+  }
+
+  function buildVendorLinkRowCells(headers, index, link) {
+    return headers.map(function (h) {
+      if (h === "N") return String(index + 1);
+      if (h === "Action") return '<button class="link-unlink-btn" data-index="' + index + '">🗑️</button>';
+      if (h === "C") return "🏢";
+      if (h === "S") return "";
+      if (h === "ID") return link.id;
+      if (h === "리비전" || h === "Revision") return "";
+      if (h === "제목") return link.customerName;
+      if (h === "생성자" || h === "작성자") return link.creator || "";
+      if (h === "생성일") return link.createdAt || "";
+      return "";
+    }).map(function (cell) {
+      return "<td>" + cell + "</td>";
+    }).join("");
+  }
+
+  function renderVendorLinkTab(kind) {
+    const title = kind === "parent" ? "상위구성" : "하위구성";
+    const headers = ["N", "Action", "C", "S", "ID", "리비전", "제목", "생성자", "생성일"];
+    const links = getVendorLinksFor(kind);
+
+    vendorToolbarTitle.textContent = "ℹ️ " + title;
+    vendorToolbarActions.innerHTML =
+      '<select id="vendor-link-type-select" class="field-input" style="width:auto;display:inline-block;margin-left:16px;margin-right:8px;"><option>Vendor</option></select>' +
+      '<button id="vendor-link-add-btn">➕ 추가</button>' +
+      '<button id="vendor-link-search-add-btn">🔍➕ 검색추가</button>' +
+      '<button id="vendor-link-delete-btn">🗑️ 삭제</button>' +
+      '<button id="vendor-link-unlink-btn">🔗🗑️ 연결삭제</button>' +
+      '<div class="dropdown-wrap" id="vendor-link-more-wrap">' +
+      '<button id="vendor-link-more-btn">⋮</button>' +
+      '<div class="dropdown-menu"><div class="dropdown-item" id="vendor-link-refresh-item">🔄 새로고침</div></div>' +
+      "</div>";
+
+    const rowsHtml = links.length > 0
+      ? links.map(function (link, index) {
+          return "<tr>" + buildVendorLinkRowCells(headers, index, link) + "</tr>";
+        }).join("")
+      : buildEmptyGridRowsHtml(headers.length);
+
+    vendorMainContent.innerHTML =
+      '<div class="ai-item-table-wrapper">' +
+      '<table class="ai-table"><thead><tr>' +
+      headers.map(function (h) { return "<th>" + h + "</th>"; }).join("") +
+      "</tr></thead><tbody id=\"vendor-link-table-body\">" + rowsHtml + "</tbody></table>" +
+      "</div>" +
+      (links.length === 0 ? '<div class="page-total">No items to display</div>' : "");
+
+    let selectedIndex = -1;
+
+    document.querySelectorAll("#vendor-link-table-body tr").forEach(function (row, index) {
+      row.addEventListener("click", function () {
+        document.querySelectorAll("#vendor-link-table-body tr").forEach(function (r) {
+          r.classList.remove("ailist-row-selected");
+        });
+        row.classList.add("ailist-row-selected");
+        selectedIndex = index;
+      });
+    });
+
+    document.querySelectorAll("#vendor-link-table-body .link-unlink-btn").forEach(function (btn) {
+      btn.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const idx = Number(btn.dataset.index);
+        links.splice(idx, 1);
+        renderVendorLinkTab(kind);
+      });
+    });
+
+    function removeSelected() {
+      if (selectedIndex < 0 || !links[selectedIndex]) {
+        alert("선택된 항목이 없습니다.");
+        return;
+      }
+      links.splice(selectedIndex, 1);
+      renderVendorLinkTab(kind);
+    }
+
+    document.getElementById("vendor-link-delete-btn").addEventListener("click", removeSelected);
+    document.getElementById("vendor-link-unlink-btn").addEventListener("click", removeSelected);
+
+    document.getElementById("vendor-link-add-btn").addEventListener("click", function () {
+      openVendorCreateModal(function (vendor) {
+        links.push(vendor);
+        renderVendorLinkTab(kind);
+      });
+    });
+
+    document.getElementById("vendor-link-search-add-btn").addEventListener("click", function () {
+      openVendorPickerModal(function (vendor) {
+        links.push(vendor);
+        renderVendorLinkTab(kind);
+      });
+    });
+
+    const moreWrap = document.getElementById("vendor-link-more-wrap");
+    document.getElementById("vendor-link-more-btn").addEventListener("click", function (event) {
+      event.stopPropagation();
+      moreWrap.classList.toggle("open");
+    });
+    document.getElementById("vendor-link-refresh-item").addEventListener("click", function () {
+      moreWrap.classList.remove("open");
+      renderVendorLinkTab(kind);
+    });
+    document.addEventListener("click", function () {
+      moreWrap.classList.remove("open");
+    });
+  }
+
+  // 상위구성/하위구성의 "➕ 추가" — 공급사 일반정보와 동일한 필드를 가진 신규 공급사 생성 모달
+  // (원본처럼 상단에 저장/취소 버튼, 그 아래 일반정보를 표 형태로 배치)
+  function openVendorCreateModal(onCreated) {
+    const bodyHtml =
+      '<div class="modal-actions vc-top-actions"><button id="vc-save-btn">저장</button><button id="vc-cancel-btn">취소</button></div>' +
+      '<h3 class="section-title">일반정보</h3>' +
+      '<table class="vc-table">' +
+      '<tr><th><span class="required-mark">*</span>ID</th><td><input type="text" id="vc-id"></td>' +
+      '<th>업체코드</th><td><input type="text" id="vc-code"></td></tr>' +
+      '<tr><th><span class="required-mark">*</span>고객명</th><td colspan="3"><input type="text" id="vc-name"></td></tr>' +
+      '<tr><th>주소</th><td colspan="3"><input type="text" id="vc-address"></td></tr>' +
+      '<tr><th>도시</th><td><input type="text" id="vc-city"></td>' +
+      '<th>우편번호</th><td><input type="text" id="vc-postal"></td></tr>' +
+      '<tr><th>나라</th><td><select id="vc-country">' +
+      '<option value=""></option>' +
+      COUNTRY_LIST.map(function (c) { return "<option>" + c + "</option>"; }).join("") +
+      "</select></td>" +
+      '<th>상태</th><td><input type="text" id="vc-status"></td></tr>' +
+      '<tr><th>Phone</th><td><input type="text" id="vc-phone"></td>' +
+      '<th>Fax</th><td><input type="text" id="vc-fax"></td></tr>' +
+      '<tr><th>비고</th><td colspan="3"><textarea id="vc-remark" rows="3"></textarea></td></tr>' +
+      "</table>";
+
+    openModal("생성", bodyHtml, { wide: true });
+
+    document.getElementById("vc-cancel-btn").addEventListener("click", closeModal);
+
+    document.getElementById("vc-save-btn").addEventListener("click", function () {
+      const id = document.getElementById("vc-id").value.trim();
+      const customerName = document.getElementById("vc-name").value.trim();
+
+      if (!id || !customerName) {
+        alert("ID와 고객명을 입력해주세요.");
+        return;
+      }
+
+      const list = getVendorList();
+      if (list.some(function (v) { return v.id === id; })) {
+        alert("이미 존재하는 ID입니다.");
+        return;
+      }
+
+      const newVendor = {
+        id: id,
+        customerName: customerName,
+        companyCode: document.getElementById("vc-code").value.trim(),
+        address: document.getElementById("vc-address").value.trim(),
+        postalCode: document.getElementById("vc-postal").value.trim(),
+        city: document.getElementById("vc-city").value.trim(),
+        country: document.getElementById("vc-country").value,
+        status: document.getElementById("vc-status").value.trim(),
+        phone: document.getElementById("vc-phone").value.trim(),
+        fax: document.getElementById("vc-fax").value.trim(),
+        remark: document.getElementById("vc-remark").value.trim(),
+        creator: getProfile().name
+      };
+
+      list.push(newVendor);
+      cacheVendorList(list);
+
+      fetch(API_BASE + "/vendors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newVendor)
+      }).catch(function (err) {
+        console.error("공급사 서버 생성 실패 (로컬에는 저장됨):", err);
+      });
+
+      closeModal();
+      onCreated(newVendor);
+    });
+  }
+
+  // 일정 탭의 "검색추가" — 원본처럼 PMS(프로젝트관리) 데이터를 검색하는 모달이지만,
+  // 이 프로토타입엔 PMS 데이터 자체가 없어서 항상 빈 목록으로 뜸 (원본에서도 연결 전엔 마찬가지)
+  function openPmsSearchModal() {
+    const bodyHtml =
+      '<div class="vendor-picker-search">' +
+      '<input type="text" placeholder="ID">' +
+      '<input type="text" placeholder="명칭">' +
+      '<button id="pms-search-btn">🔍 검색</button>' +
+      "</div>" +
+      '<div class="vendor-picker-table-wrapper">' +
+      '<table class="vendor-picker-table">' +
+      "<thead><tr><th>No</th><th>ID</th><th>명칭</th></tr></thead>" +
+      "<tbody></tbody>" +
+      "</table>" +
+      "</div>" +
+      '<div class="page-total">No items to display</div>';
+
+    openModal("PMS", bodyHtml, { wide: true });
+    document.getElementById("pms-search-btn").addEventListener("click", function () {
+      /* 연결할 PMS 데이터가 없어 항상 빈 목록 */
+    });
+  }
+
+  document.querySelectorAll("#vendor-link-list li").forEach(function (li) {
+    li.addEventListener("click", function () {
+      document.querySelectorAll("#vendor-link-list li").forEach(function (x) {
+        x.classList.remove("link-active");
+      });
+      li.classList.add("link-active");
+
+      const view = li.dataset.view;
+      if (view === "detail") {
+        vendorToolbarTitle.textContent = "ℹ️ 상세정보";
+        vendorToolbarActions.innerHTML = vendorDetailToolbarHtml;
+        vendorMainContent.innerHTML = vendorDetailMainHtml;
+      } else if (view === "project") {
+        renderVendorProjectTab();
+      } else if (view === "schedule") {
+        renderVendorScheduleTab();
+      } else if (view === "parent" || view === "child") {
+        renderVendorLinkTab(view);
+      }
+    });
+  });
 }
 
 // 연결정보: ⌃(접기)는 아래 목록 숨기고/보이기, ✕(닫기)는 연결정보 섹션 전체 숨김
@@ -2230,7 +2568,7 @@ const editToggleBtn = document.getElementById("edit-toggle-btn");
 const infoTable = document.querySelector(".info-table");
 const FIELD_OPTIONS = {
   status: ["진행중", "완료", "대기"],
-  country: ["-2147483647", "대한민국", "일본", "중국", "미국"]
+  country: [""].concat(COUNTRY_LIST)
 };
 
 function enterFieldEditMode() {

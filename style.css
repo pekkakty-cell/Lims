@@ -521,8 +521,13 @@ body.login-page {
   cursor: pointer;
 }
 
-#ailist-view-table-body tr.ailist-row-selected {
+#ailist-view-table-body tr.ailist-row-selected,
+#vendor-link-table-body tr.ailist-row-selected {
   background-color: #dceaf7;
+}
+
+#vendor-link-table-body tr {
+  cursor: pointer;
 }
 
 .vendor-picker-search {
@@ -1076,12 +1081,26 @@ body.login-page {
 }
 
 
+.detail-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .detail-actions button {
   padding: 6px 12px;
   margin-left: 8px;
   border: 1px solid darkgray;
   background-color: white;
   cursor: pointer;
+}
+
+.detail-actions .dropdown-wrap {
+  margin-left: 8px;
+}
+
+.detail-actions .dropdown-wrap button {
+  margin-left: 0;
 }
 
 .info-block {
@@ -1138,6 +1157,69 @@ body.login-page {
 
 .info-table td {
   width: 350px;
+}
+
+/* 상위/하위구성 "생성" 모달: 원본처럼 저장/취소 버튼이 맨 위 왼쪽에 위치 */
+.vc-top-actions {
+  justify-content: flex-start;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+/* "생성" 모달의 필드 표: info-table과 똑같이 라벨칸이 값칸 왼쪽에 붙는 모양이지만,
+   info-table처럼 고정 px 폭을 쓰면 좁은 모달에서 넘치므로 유연한(1fr) 폭으로 구현 */
+.vc-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+.vc-table th,
+.vc-table td {
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  font-size: 13px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.vc-table th {
+  background-color: #f7f7f7;
+  width: 110px;
+  min-width: 110px;
+  text-align: left;
+  color: #555;
+  font-weight: normal;
+}
+
+.vc-table td {
+  width: auto;
+}
+
+.vc-table input,
+.vc-table select,
+.vc-table textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: none;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.vc-table input:focus,
+.vc-table select:focus,
+.vc-table textarea:focus {
+  outline: 1px solid #2f7bc4;
+}
+
+/* 데이터 없는 목록도 원본처럼 빈 칸(줄)이 죽 그어진 빈 그리드처럼 보이게 함 */
+.empty-grid-row td {
+  height: 28px;
+  border: 1px solid #eee;
 }
 
 /* 모달(팝업) 안 입력 폼: info-table(고정 px 컬럼)은 좁은 모달에서 넘치므로,

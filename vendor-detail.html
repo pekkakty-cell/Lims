@@ -75,9 +75,9 @@
         <h2 class="page-title">공급사</h2>
       </div>
       <div class="page-header-right">
-        <div class="section-header">
-          <span>ℹ️ 상세정보</span>
-          <div class="detail-actions">
+        <div class="section-header" id="vendor-toolbar">
+          <span id="vendor-toolbar-title">ℹ️ 상세정보</span>
+          <div class="detail-actions" id="vendor-toolbar-actions">
             <button id="edit-toggle-btn">✏️ 수정</button>
             <button id="delete-record-btn">🗑️ 삭제</button>
             <button class="page-refresh-btn">🔄 새로고침</button>
@@ -142,12 +142,12 @@
             <button class="tree-icon-btn" title="닫기">✕</button>
           </div>
         </div>
-        <ul class="link-list">
-          <li class="link-active">상세정보</li>
-          <li>프로젝트</li>
-          <li>일정</li>
-          <li>상위구성</li>
-          <li>하위구성</li>
+        <ul class="link-list" id="vendor-link-list">
+          <li class="link-active" data-view="detail">상세정보</li>
+          <li data-view="project">프로젝트</li>
+          <li data-view="schedule">일정</li>
+          <li data-view="parent">상위구성</li>
+          <li data-view="child">하위구성</li>
         </ul>
       </div>
       </div>
@@ -155,7 +155,7 @@
 
     <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
 
-    <main class="detail-content">
+    <main class="detail-content" id="vendor-main-content">
 
       <div class="info-block">
         <div class="info-block-header">
@@ -185,7 +185,7 @@
           </tr>
           <tr>
             <th>나라</th>
-            <td><span class="field-display" data-field-type="country">-2147483647</span></td>
+            <td><span class="field-display" data-field-type="country"></span></td>
             <th>상태</th>
             <td><span class="field-display"></span></td>
           </tr>
@@ -209,7 +209,7 @@
         <div class="sys-info-row">
           <div class="sys-info-item">
             <span class="sys-label">수정자</span>
-            <div class="sys-input"><span></span><button class="icon-btn" title="검색">🔍</button></div>
+            <div class="sys-input"><span id="vendor-modifier-name"></span><button class="icon-btn" id="vendor-modifier-search-btn" title="검색">🔍</button></div>
           </div>
           <div class="sys-info-item">
             <span class="sys-label">수정일자</span>
@@ -219,7 +219,7 @@
         <div class="sys-info-row">
           <div class="sys-info-item">
             <span class="sys-label">생성자</span>
-            <div class="sys-input"><span>박신영</span><button class="icon-btn" title="검색">🔍</button></div>
+            <div class="sys-input"><span id="vendor-creator-name">박신영</span><button class="icon-btn" id="vendor-creator-search-btn" title="검색">🔍</button></div>
           </div>
           <div class="sys-info-item">
             <span class="sys-label">생성일자</span>
