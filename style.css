@@ -24,24 +24,32 @@ header {
   justify-content: space-between;
   background-color: #2f7bc4;
   color: white;
-  padding: 0px 30px;
+  padding: 0px clamp(12px, 2vw, 30px);
+  overflow-x: auto;
 }
 
 .right-group{
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: clamp(10px, 2vw, 40px);
+  flex-shrink: 0;
 }
 
 .logo {
   font-weight: bold;
   font-size: 18px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+nav {
+  white-space: nowrap;
 }
 
 nav a {
   color: white;
   text-decoration: none;
-  padding: 20px 25px;
+  padding: 20px clamp(10px, 1.4vw, 25px);
   display: inline-block;
   border-bottom: 3px solid transparent;
 }
@@ -53,6 +61,7 @@ nav a:hover {
 
 .user-info {
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .sticky-top {
